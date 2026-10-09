@@ -2,9 +2,9 @@ name: Release
 
 # Publishes the package to npm when a version tag (for example v0.2.0) is pushed.
 # npm trusted publishing uses the OIDC token of GitHub Actions: the workflow
-# needs no npm token, and the package gets a provenance statement. Set up the
-# trusted publisher one time on npmjs.com (package settings > Trusted publishing:
-# this repository and the workflow release.yml).
+# needs no npm token, and the package gets a provenance statement. The trusted
+# publisher is set one time: npm trust github page-lifecycle-tracker
+# --file release.yml --repo mark1russell7/page-lifecycle-tracker --allow-publish
 
 on:
   push:
@@ -40,7 +40,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm test
-      - run: pnpm build
-      # Trusted publishing needs npm 11.5.1 or later. pnpm publish applies publishConfig (main, types, exports).
+      # pnpm pack runs prepack (the build) and applies publishConfig (main, types, exports)
+      - run: pnpm pack --pack-destination "$RUNNER_TEMP"
+      # npm publishes the tarball. Trusted publishing (OIDC) needs npm 11.5.1 or later.
       - run: npm install --global npm@latest
-      - run: pnpm publish --access public --provenance --no-git-checks
+      - run: npm publish "$RUNNER_TEMP"/page-lifecycle-tracker-*.tgz --access public --provenance
