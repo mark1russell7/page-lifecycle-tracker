@@ -1,0 +1,54 @@
+---
+title: Capture phase and listener order in Chromium, Firefox and WebKit
+nav: Listener order
+description: Why the tracker listens in the capture phase, how Chromium orders the pagehide listeners of window, and how the export phase keeps the last telemetry.
+order: 11
+layout: wide
+---
+
+## The DOM rule at the target
+
+When an event gets to its target, the DOM standard starts the capture listeners of the target in the capture pass. Then it starts the other listeners of the target in the bubble pass. Thus a capture listener at the target starts before a bubble listener, also when the page added the bubble listener first.
+
+The tracker uses this rule. It listens in the capture phase for `visibilitychange`, `freeze`, `resume`, `pagehide` and `pageshow`. Thus its subscribers record their values before an exporter that listens to the same event in the bubble phase.
+
+## Experiment E1: the listener order in three engines
+
+The lag project measured the order in three engines ([experiment E1](https://mark1russell7.github.io/lag/research/local-experiments)). The experiment used Vitest browser mode with the Playwright provider. In each case, it added a bubble listener first and a capture listener second. Then it dispatched one event and recorded the listener that started first.
+
+| Target | Chromium 145.0.7632.6 (headless) | Firefox 146 | WebKit (Safari 26.0 build) |
+|---|---|---|---|
+| `window`, custom `Event` | Bubble (the order of registration) | Capture | Capture |
+| `window`, `PageTransitionEvent("pagehide")` | Bubble (the order of registration) | Capture | Capture |
+| `document`, custom `Event` | Capture | Capture | Capture |
+| `document`, `Event` with `bubbles: true` | Capture | Capture | Capture |
+| Element (`document.body`) | Capture | Capture | Capture |
+
+## What the results mean
+
+### visibilitychange, freeze and resume on document
+
+The target of `visibilitychange`, `freeze` and `resume` is `document`. In the three engines, the capture listeners of the tracker start before the listeners of an exporter.
+
+### pagehide and pageshow on window
+
+The target of `pagehide` and `pageshow` is `window`. There, Chromium starts the listeners in the order of their registration. Thus an exporter that added its `pagehide` listener before the tracker can flush before the monitors record their last values.
+
+The capture phase cannot protect the last values in all engines. Thus the library has two other solutions.
+
+- **The export phase.** The exporter subscribes to the shared tracker with `{ phase: "export" }`, and it has no `pagehide` listener of its own. In each transition, the tracker starts all `observe` subscribers, and then all `export` subscribers. Refer to [the shared tracker and the phases](/docs/concepts/shared-tracker-and-phases).
+- **`handle(event)`.** An exporter that keeps its own listener gives the event to `handle(event)` before it flushes. The tracker makes the transition at once, and its subscribers record their values. Later, the listener of the tracker ignores the same event object.
+
+## Watch a pagehide in each engine
+
+The animation shows a `pagehide` in a page where the exporter added its listener before the tracker. It compares Chromium, Firefox and WebKit, and the export phase. It also does the `window` test of E1 in your browser.
+
+<ListenerOrder />
+
+## Why focus and blur are not capture listeners
+
+The tracker listens for `focus` and `blur` on `window`, without the capture phase. A capture listener on `window` also gets the `focus` and `blur` events of each element of the page.
+
+## The tests in the library
+
+A unit test makes sure that the listeners of the tracker are capture listeners, except for `focus` and `blur`. Another unit test adds a bubble listener to a simulated `document` first, and then makes the tracker. The test makes sure that the subscribers of the tracker start before that bubble listener.

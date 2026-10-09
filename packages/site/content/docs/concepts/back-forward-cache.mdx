@@ -1,0 +1,56 @@
+---
+title: Back/forward cache (bfcache) restores and pagehide
+nav: Back/forward cache
+description: How the tracker follows a page into the back/forward cache (bfcache) and out of it with pagehide and pageshow, and why pagehide replaces the unload event.
+order: 13
+---
+
+## Into the back/forward cache
+
+When the user goes to another page, the browser can keep the current page in the back/forward cache (bfcache). The page gets a `pagehide` event, and its `persisted` property is `true`. The tracker changes the state to `frozen`, with the trigger `pagehide`.
+
+When the browser does not keep the page, `persisted` is `false`. Then the tracker changes the state to `terminated`. All three engines have the `persisted` property ([browser support](/docs/browser-support)).
+
+## Out of the back/forward cache
+
+When the user goes back to the page, the browser restores it from the cache. The page gets a `pageshow` event, and its `persisted` property is `true`. The tracker changes the state to `active` or `passive`, with the trigger `pageshow`. The state is `active` when `document.hasFocus()` gives `true`.
+
+No new navigation entry comes with a restore. Thus the `pageshow` transition is the signal of a new page view.
+
+## A restore is always a transition
+
+Chromium restores a page with `resume`, `visibilitychange` and then `pageshow`. Thus the state is already visible when `pageshow` comes. The tracker still gives a transition with the trigger `pageshow`. Then `from` and `to` are the same, for example `active` to `active`.
+
+Thus the subscribers get a transition for each restore. A subscriber finds a restore from its trigger, not from its states:
+
+```ts
+getPageLifecycle().subscribe(({ trigger }) => {
+    if (trigger === "pageshow") startNewPageView();
+});
+```
+
+`summarizeTransitions()` gives `wasRestoredFromBFCache: true` for a list of transitions that contains a `pageshow` transition. The [restore recipe](/docs/recipes/detect-bfcache-restore) shows a full example.
+
+## No beforeunload listener
+
+The tracker does not listen for `beforeunload`, for two causes:
+
+- A script can cancel that event. Then a live page has the state `terminated`.
+- A `beforeunload` listener can make the page ineligible for the back/forward cache.
+
+## pagehide versus unload
+
+Do not use the `unload` event to send data. Chrome deprecated `unload` in steps: 1% of sites in version 146 (March 2026), 40% in version 150, and 100% in version 154 (2026-09-22). From Chrome 154, Chrome does not start `unload` listeners.
+
+Use `pagehide` and `visibilitychange` instead. The tracker uses both: a page that becomes hidden gets the `hidden` state, and a page that goes away gets `frozen` or `terminated`.
+
+## Why a page is not restored
+
+Chromium gives the causes in `notRestoredReasons` (gradual rollout from Chrome 123). Firefox and Safari do not have it. The strings of the reasons change over time:
+
+- Chrome removed the reason `websocket` in version 149. From that version, pages with open WebSockets can go into the back/forward cache, because Chrome disconnects the WebSockets.
+- Chrome removed the reason `unload-listener` in version 154, together with the `unload` event.
+
+## Try a restore on this site
+
+The [home page](/) shows the transitions of your visit. Leave the page with its link to another page, and come back with the Back button. If the browser restores the page from the back/forward cache, the diagram shows `frozen` and then a `pageshow` transition.

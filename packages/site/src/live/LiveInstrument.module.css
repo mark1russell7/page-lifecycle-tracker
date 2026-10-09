@@ -1,0 +1,229 @@
+.instrument {
+  --diagram-surface: var(--color-surface);
+  min-width: 0;
+  border: 1px solid var(--color-rule-strong);
+  border-radius: 20px;
+  background: var(--color-surface);
+  box-shadow: 0 28px 70px -36px color-mix(in srgb, var(--current) 55%, transparent);
+  transition: box-shadow 900ms ease;
+}
+
+/*
+ * The readout: the state of this page in large type, in the color of the
+ * state. The text color mixes the state color with the ink, so that it has
+ * a contrast of at least 3:1 (large text) in both themes.
+ */
+.readout {
+  --state-ink: color-mix(in oklab, var(--current) 72%, var(--color-ink));
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem 1.25rem 1.1rem;
+  border-bottom: 1px solid var(--color-rule);
+  border-radius: 20px 20px 0 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--current) 9%, var(--color-surface)), var(--color-surface));
+  transition: background 600ms ease;
+}
+
+.readoutTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  color: var(--color-ink-secondary);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.readoutBody {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 2rem;
+}
+
+.readoutLine {
+  margin: 0;
+  font-size: clamp(1.35rem, 1.05rem + 1.3vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.readoutLead {
+  color: var(--color-ink);
+}
+
+.bigState {
+  display: inline-block;
+  color: var(--state-ink);
+  font-size: 1.6em;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--current) 55%, transparent);
+  text-decoration-thickness: 0.12em;
+  text-underline-offset: 0.14em;
+  animation: state-in 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes state-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.35em);
+    filter: blur(3px);
+  }
+}
+
+.readoutMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0.9rem;
+  margin: 0;
+  color: var(--color-ink-secondary);
+  font-size: var(--text-sm);
+}
+
+.readoutSince {
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bigState {
+    animation: none;
+  }
+
+  .readout {
+    transition: none;
+  }
+}
+
+.liveMark {
+  flex: none;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  background: var(--current);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--current) 24%, transparent);
+  transition: background 400ms ease, box-shadow 400ms ease;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 64rem) {
+  .body {
+    grid-template-columns: minmax(0, 1.75fr) minmax(19rem, 1fr);
+  }
+}
+
+.stage {
+  min-width: 0;
+  padding: 1.25rem 1rem 0.75rem;
+  background-color: var(--color-surface);
+  background-image: radial-gradient(var(--color-grid) 1.3px, transparent 1.5px);
+  background-size: 22px 22px;
+  background-position: 11px 11px;
+}
+
+.side {
+  min-width: 0;
+  padding: 1.1rem 1.25rem 1rem;
+  border-top: 1px solid var(--color-rule);
+}
+
+@media (min-width: 64rem) {
+  .side {
+    border-top: 0;
+    border-left: 1px solid var(--color-rule);
+  }
+}
+
+.sideTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.6rem;
+  font-size: var(--text-sm);
+  letter-spacing: 0;
+}
+
+.sideCount {
+  min-width: 1.5rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--color-surface-sunken);
+  color: var(--color-ink-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-align: center;
+}
+
+.checklist {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0 0 1.3rem;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.65rem;
+}
+
+.itemText {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.itemResult {
+  margin: 0.15rem 0 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+}
+
+.item[data-done] .itemResult {
+  color: var(--color-accent-strong);
+}
+
+.check {
+  margin-top: 0.05rem;
+}
+
+.check circle {
+  fill: none;
+  stroke: var(--color-rule-strong);
+  stroke-width: 1.5;
+  transition: fill 300ms ease, stroke 300ms ease;
+}
+
+.check[data-done] circle {
+  fill: var(--color-accent);
+  stroke: var(--color-accent);
+}
+
+.check path {
+  fill: none;
+  stroke: var(--color-surface);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.timeline {
+  padding: 1.1rem 1.25rem 1rem;
+  border-top: 1px solid var(--color-rule);
+}

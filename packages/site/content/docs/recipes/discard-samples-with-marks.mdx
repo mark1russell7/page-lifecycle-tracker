@@ -1,0 +1,51 @@
+---
+title: Discard the samples of a hidden or frozen window
+nav: Discard samples with marks
+description: Use marks to find the Page Lifecycle transitions of a measurement window, and discard the samples of a page that was hidden, frozen or restored from the bfcache.
+order: 42
+---
+
+## The problem
+
+A monitor measures the page in windows, for example the delay of a timer. If the page becomes hidden during a window, the browser throttles the timers. If the page is frozen, the window contains the time in the freeze. Such a sample measures the browser, not the page.
+
+## The solution
+
+Put a mark at the start of each window. At the end, resolve the mark and summarize its transitions. Discard the sample if the page was hidden, frozen or restored from the back/forward cache.
+
+```ts
+import { getPageLifecycle, isVisibleState, summarizeTransitions } from "page-lifecycle-tracker";
+
+const lifecycle = getPageLifecycle();
+
+/** This function measures one window and gives the delay, or `undefined` for a sample that is not valid. */
+export async function measureTimerDelay(delayMs: number): Promise<number | undefined> {
+    if (!isVisibleState(lifecycle.getState())) return undefined;
+    const mark = lifecycle.mark();
+    try {
+        const start = performance.now();
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        const lateness = performance.now() - start - delayMs;
+
+        const summary = summarizeTransitions(lifecycle.resolve(mark));
+        if (summary.wasHidden || summary.wasFrozen || summary.wasRestoredFromBFCache) return undefined;
+        return lateness;
+    } catch (error) {
+        lifecycle.cancel(mark);
+        throw error;
+    }
+}
+```
+
+## The rules of the example
+
+- The function starts no window in a hidden page. A window that starts hidden has no transition to `hidden`, thus `wasHidden` cannot find it.
+- `resolve(mark)` reads `document.visibilityState` again. Thus a change to `hidden` before its `visibilitychange` event is in the result.
+- The `catch` block cancels the mark. Resolve or cancel each mark: the tracker keeps the transitions while a mark is open.
+- `resolve()` after `cancel()` gives an empty array. Thus a late `resolve()` call does no damage.
+
+## Keep the focus changes
+
+A change between `active` and `passive` does not affect the timers. Thus the example keeps a sample with only `focus` or `blur` transitions. To discard these samples too, test `summary.transitionCount > 0` instead.
+
+Refer to [marks](/docs/concepts/marks) for the buffer rules, and to [the time of a transition](/docs/concepts/marks#the-time-of-a-transition) for the timestamps.

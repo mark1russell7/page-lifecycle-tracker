@@ -1,0 +1,339 @@
+.page {
+  width: 100%;
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: var(--space-7) var(--gutter) var(--space-8);
+}
+
+/*
+ * The hero: the headline and the install command, then the live instrument.
+ * A light behind it has the color of the current state of this page
+ * (--hero-glow, set by the page). The property is registered, thus a change
+ * of state fades from the old color to the new color.
+ */
+
+@property --hero-glow {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+
+.hero {
+  --glow-amount: 22%;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  gap: var(--space-6);
+  transition: --hero-glow 1400ms ease;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  /* The full width of the window. The shell clips what is outside the window (refer to RootLayout.module.css). */
+  top: calc(-1 * var(--space-7));
+  bottom: 25%;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  background:
+    radial-gradient(ellipse 42% 70% at 70% 30%, color-mix(in srgb, var(--hero-glow) var(--glow-amount), transparent), transparent 75%),
+    radial-gradient(ellipse 32% 55% at 20% 0%, color-mix(in srgb, var(--hero-glow) calc(var(--glow-amount) / 2), transparent), transparent 70%);
+  pointer-events: none;
+}
+
+:root[data-theme="dark"] .hero {
+  --glow-amount: 48%;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .hero {
+    --glow-amount: 48%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero {
+    transition: none;
+  }
+}
+
+.heroHead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: end;
+}
+
+@media (min-width: 64rem) {
+  .heroHead {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: var(--space-8);
+  }
+}
+
+.title {
+  max-width: 15ch;
+  margin: 0;
+  font-size: clamp(2.4rem, 1.5rem + 3.6vw, 4.3rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.heroAside {
+  min-width: 0;
+  max-width: 34rem;
+}
+
+.lead {
+  margin: 0 0 var(--space-4);
+  color: var(--color-ink-secondary);
+  font-size: var(--text-base);
+  line-height: 1.55;
+}
+
+@media (min-width: 40rem) {
+  .lead {
+    font-size: var(--text-lg);
+    line-height: 1.5;
+  }
+}
+
+.lead code {
+  color: var(--color-ink);
+  font-size: 0.88em;
+}
+
+.install {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+}
+
+.managers {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.manager {
+  min-height: 2rem;
+  padding: 0.1rem 0.75rem;
+  border: 1px solid var(--color-rule);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-ink-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.manager[aria-pressed="true"] {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-page);
+}
+
+.command {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0.5rem 0.55rem 0.5rem 0.9rem;
+  border: 1px solid var(--color-rule-strong);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  font-size: 0.92rem;
+}
+
+.command code {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 30rem) {
+  .command code {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.prompt {
+  color: var(--color-ink-muted);
+  user-select: none;
+}
+
+.copy {
+  min-height: 2rem;
+  padding: 0.2rem 0.7rem;
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-small);
+  background: var(--color-surface-sunken);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.copy:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent-strong);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+/* The sections after the hero. */
+
+.sectionTitle {
+  margin: 0 0 var(--space-3);
+  font-size: clamp(1.6rem, 1.3rem + 1.2vw, 2.2rem);
+  letter-spacing: -0.03em;
+}
+
+.example {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+  margin-top: var(--space-10);
+}
+
+@media (min-width: 64rem) {
+  .example {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: var(--space-8);
+  }
+}
+
+.exampleText p {
+  max-width: 38rem;
+  color: var(--color-ink-secondary);
+}
+
+.exampleCode {
+  max-width: none;
+  min-width: 0;
+}
+
+.exampleCode pre {
+  margin: 0;
+  font-size: 0.86rem;
+}
+
+.order {
+  margin-top: var(--space-10);
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--color-rule);
+}
+
+.orderText {
+  max-width: 46rem;
+  margin-bottom: var(--space-5);
+}
+
+.orderText p {
+  color: var(--color-ink-secondary);
+}
+
+.loading {
+  padding: var(--space-6) 0;
+  color: var(--color-ink-secondary);
+}
+
+.features {
+  margin-top: var(--space-8);
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--color-rule);
+}
+
+.featureList {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0 var(--space-7);
+  margin: var(--space-4) 0 0;
+}
+
+@media (min-width: 48rem) {
+  .featureList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 72rem) {
+  .featureList {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.feature {
+  padding: var(--space-4) 0 var(--space-5);
+  border-top: 1px solid var(--color-rule-strong);
+}
+
+.featureName {
+  margin: 0 0 var(--space-2);
+  font-weight: 700;
+}
+
+.featureName code {
+  font-size: 0.95rem;
+}
+
+.featureText {
+  margin: 0;
+}
+
+.featureText p {
+  margin: 0 0 var(--space-2);
+  color: var(--color-ink-secondary);
+  font-size: var(--text-sm);
+}
+
+.featureText a {
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.next {
+  margin-top: var(--space-6);
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--color-rule);
+}
+
+.nextGroups {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+  margin-top: var(--space-4);
+}
+
+@media (min-width: 48rem) {
+  .nextGroups {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.nextTitle {
+  margin: 0 0 var(--space-2);
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.nextGroup ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

@@ -1,0 +1,36 @@
+---
+title: Page Lifecycle tracker documentation
+nav: Overview
+description: The documentation of page-lifecycle-tracker, a TypeScript library for the Page Lifecycle API state of a web page, bfcache restores and the last telemetry.
+order: 0
+---
+
+`page-lifecycle-tracker` follows the state of a web page in the Page Lifecycle API: `active`, `passive`, `hidden`, `frozen` and `terminated`. It gets the state from the browser events `focus`, `blur`, `visibilitychange`, `freeze`, `resume`, `pagehide` and `pageshow`.
+
+The library is for monitoring and telemetry code. A monitor discards the samples of a hidden page. An exporter sends the last data before the page goes away. A Web Vitals library starts a new page view after a restore from the back/forward cache (bfcache).
+
+All libraries of a page share one tracker. In each transition, the subscribers of the `observe` phase start before the subscribers of the `export` phase. Thus the monitors record their last values before the exporter sends them, whatever the order of the scripts.
+
+The package has no dependencies. It is an ECMAScript module with TypeScript types, and its license is MIT.
+
+## Start here
+
+- [Getting started](/docs/getting-started): install the package and subscribe to the transitions.
+- [API reference](/docs/api): each function, class, method and type of the package.
+- [Browser support](/docs/browser-support): the events in Chromium, Firefox and Safari, with the sources.
+
+## Concepts
+
+- [States and transitions](/docs/concepts/states-and-transitions): the five states, the events that change them, and a simulator.
+- [Capture phase and listener order](/docs/concepts/listener-order): why the tracker listens in the capture phase, and where that is not sufficient.
+- [The shared tracker and the phases](/docs/concepts/shared-tracker-and-phases): one tracker for each page, and monitors before exporters.
+- [Back/forward cache (bfcache)](/docs/concepts/back-forward-cache): the transitions into the cache and out of it.
+- [The freeze event](/docs/concepts/freeze-and-resume): when Chromium freezes a page, and what `resume` does.
+- [Marks](/docs/concepts/marks): the transitions in a measurement window.
+
+## Recipes
+
+- [Flush OpenTelemetry at the end of the page](/docs/recipes/flush-opentelemetry): send the last spans and metrics after the monitors.
+- [Pause timers while the page is hidden](/docs/recipes/pause-timers-while-hidden): stop a poller in the background.
+- [Discard the samples of a window](/docs/recipes/discard-samples-with-marks): keep only the measurements of a visible page.
+- [Detect a back/forward cache restore](/docs/recipes/detect-bfcache-restore): start a new page view after a restore.

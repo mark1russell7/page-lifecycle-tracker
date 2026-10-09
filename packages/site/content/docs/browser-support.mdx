@@ -1,0 +1,61 @@
+---
+title: Browser support for the Page Lifecycle API
+nav: Browser support
+description: Which browsers send visibilitychange, pagehide, pageshow, freeze and resume, how Chromium, Firefox and WebKit order the listeners, and the sources of each fact.
+order: 50
+---
+
+The facts on this page come from the research of the lag project on 2026-10-07 ([browser support](https://mark1russell7.github.io/lag/research/browser-support), [local experiments](https://mark1russell7.github.io/lag/research/local-experiments)).
+
+## The events and the properties
+
+| Feature | API | Chromium | Firefox | Safari |
+|---|---|---|---|---|
+| Page visibility | `visibilitychange`, `document.visibilityState` | Yes | Yes | Yes |
+| Back/forward cache events | `pagehide`, `pageshow`, `persisted` | Yes | Yes | Yes |
+| Page Lifecycle | `freeze`, `resume`, `document.wasDiscarded` | 68 (Edge 79) | No | No |
+| Visibility-state entries | `visibility-state` performance entries | 115 | No | No |
+| Not-restored reasons | `notRestoredReasons` | 123 (gradual rollout) | No | No |
+
+The research gives no versions for the rows with "Yes". The tracker uses only the first three rows. It examines nothing else, thus it operates in each browser of the table.
+
+## What the tracker does in each engine
+
+- **Chromium** sends all seven events. A page becomes `frozen` at `freeze` or at a `pagehide` with `persisted`.
+- **Firefox and Safari** do not send `freeze` and `resume`. There, a page becomes `frozen` only at a `pagehide` with `persisted` set to `true`.
+- **All engines** send `pageshow` with `persisted` set to `true` for a restore from the back/forward cache.
+
+## The listener order on window and on document
+
+Experiment E1 measured the order of a bubble listener that the page added first and a capture listener that it added second:
+
+| Target | Chromium 145 | Firefox 146 | WebKit (Safari 26.0 build) |
+|---|---|---|---|
+| `window`, custom `Event` | Bubble first | Capture first | Capture first |
+| `window`, `pagehide` | Bubble first | Capture first | Capture first |
+| `document`, custom `Event` | Capture first | Capture first | Capture first |
+| `document`, `Event` with `bubbles: true` | Capture first | Capture first | Capture first |
+| `document.body` | Capture first | Capture first | Capture first |
+
+On `window`, Chromium starts the listeners in the order of their registration. [Capture phase and listener order](/docs/concepts/listener-order) tells what this means for an exporter, and how the export phase solves it.
+
+## Notes on the engines
+
+- Before Safari 14 and 14.1, `visibilitychange` did not bubble to `window`, and it did not occur when the user went to another page. The tracker listens for `visibilitychange` on `document`, and it also uses `pagehide`.
+- Chrome deprecated the `unload` event in steps. From Chrome 154 (2026-09-22), Chrome does not start `unload` listeners. The tracker does not use `unload` or `beforeunload`.
+- Chrome freezes pages in the back/forward cache, in collapsed tab groups, and in hidden tabs that use much CPU time (Energy Saver, desktop, from Chrome 133, gradual rollout). On Android, it freezes background pages after 5 minutes, and after 1 minute from Chrome 139.
+- A prerendered document is hidden until its activation.
+- No web event tells a page that the operating system goes to sleep. A locked screen usually makes the page hidden, but not on each platform.
+- A `visibility-state` entry with `startTime` 0 gives the first state of the page in Chromium. Thus a script that loads late can find out if the page was hidden before.
+
+## The focus of the document
+
+The tracker uses `document.hasFocus()` to choose between `active` and `passive`. Without `document.hasFocus()`, for example in a simulated document, the tracker uses `active` for a visible page.
+
+## Sources
+
+- [Page Lifecycle](https://wicg.github.io/page-lifecycle/), WICG draft, 2022-06-09.
+- Chrome: [Page Lifecycle API](https://developer.chrome.com/docs/web-platform/page-lifecycle-api), [the deprecation of the unload event](https://developer.chrome.com/docs/web-platform/deprecating-unload), [notRestoredReasons](https://developer.chrome.com/docs/web-platform/bfcache-notrestoredreasons) and [Freezing on Energy Saver](https://developer.chrome.com/blog/freezing-on-energy-saver).
+- ChromeStatus: [the freeze of background pages on Android](https://chromestatus.com/feature/5386725031149568) and [the pause of workers on freeze](https://chromestatus.com/feature/5276568928649216).
+- MDN: [VisibilityStateEntry](https://developer.mozilla.org/en-US/docs/Web/API/VisibilityStateEntry) and [Document.visibilityState](https://developer.mozilla.org/en-US/docs/Web/API/Document/visibilityState).
+- The lag project: [browser support](https://mark1russell7.github.io/lag/research/browser-support) and [local experiments, E1](https://mark1russell7.github.io/lag/research/local-experiments).

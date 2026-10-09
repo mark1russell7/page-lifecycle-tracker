@@ -1,0 +1,73 @@
+---
+title: Getting started with page-lifecycle-tracker
+nav: Getting started
+description: Install page-lifecycle-tracker with npm or pnpm, read the Page Lifecycle API state of the page, and subscribe to each transition in ten lines of TypeScript.
+order: 1
+---
+
+## Install the package
+
+<Tabs label="Package manager">
+<Tab label="npm">
+
+```bash
+npm install page-lifecycle-tracker
+```
+
+</Tab>
+<Tab label="pnpm">
+
+```bash
+pnpm add page-lifecycle-tracker
+```
+
+</Tab>
+</Tabs>
+
+The package is an ECMAScript module (ESM) with TypeScript types. It has no dependencies. Its `package.json` sets `sideEffects` to `false`, thus a bundler can remove the modules that your code does not import.
+
+The tracker operates in a page. It reads `document` and `window`. In a worker, there is no `document`, thus `getPageLifecycle()` and `createPageLifecycle()` throw an error.
+
+## The first ten lines
+
+```ts
+import { getPageLifecycle, isVisibleState } from "page-lifecycle-tracker";
+
+const lifecycle = getPageLifecycle();
+console.log("The state at the start:", lifecycle.getState());
+
+// A monitor: the default phase is "observe"
+lifecycle.subscribe(({ from, to, trigger }) => console.log(`${from} to ${to} (${trigger})`));
+
+// An exporter: it starts after all observe subscribers
+lifecycle.subscribe(({ to }) => {
+    if (!isVisibleState(to)) exporter.flush();
+}, { phase: "export" });
+```
+
+The example does these steps:
+
+1. `getPageLifecycle()` gives the tracker of the page. Its first use makes the tracker. Each later use, also from another library, gives the same tracker.
+2. `getState()` gives the current state: `active`, `passive`, `hidden`, `frozen` or `terminated`.
+3. The first subscriber gets each transition, with the properties `from`, `to`, `trigger` and `timestamp`.
+4. The second subscriber is in the `export` phase. It starts after all `observe` subscribers of the same transition. Thus the values of the monitors are in the last export.
+5. `isVisibleState()` gives `true` for `active` and `passive`. When the page leaves these states, the exporter sends its data.
+
+`exporter.flush()` is a function of your exporter. The [OpenTelemetry recipe](/docs/recipes/flush-opentelemetry) shows a real exporter.
+
+## Look at the state of this page
+
+This site uses the library. The state of this page at this time is <LiveState />. Click outside the browser window, then click in the page again. The state changes to `passive` and back to `active`.
+
+The [home page](/) shows each transition of your visit on a diagram and a timeline.
+
+<Callout type="note" title="One tracker for each page">
+Use `getPageLifecycle()` in a library. Then all libraries of the page share the transitions and the phases. `createPageLifecycle()` makes a private tracker, for example for a test.
+</Callout>
+
+## Next steps
+
+- Learn the [states and their transitions](/docs/concepts/states-and-transitions).
+- Read why an exporter subscribes in the [export phase](/docs/concepts/shared-tracker-and-phases).
+- Find the transitions of a measurement window with [marks](/docs/concepts/marks).
+- Read the [API reference](/docs/api).

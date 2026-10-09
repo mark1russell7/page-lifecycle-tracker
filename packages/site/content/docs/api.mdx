@@ -1,0 +1,313 @@
+---
+title: API reference
+nav: API reference
+description: "Each export of page-lifecycle-tracker with its TypeScript signature and an example: getPageLifecycle, the PageLifecycle class, marks, summaries and types."
+order: 30
+---
+
+The package exports the functions, the class and the types on this page from one module, `page-lifecycle-tracker`.
+
+## Functions
+
+### getPageLifecycle()
+
+```ts
+function getPageLifecycle(options?: PageLifecycleOptions): PageLifecycle;
+```
+
+This function gives the tracker that all libraries of the page share. Its first use makes the tracker, with `options`. A later use gives the same tracker and ignores its options. The key on the global object is `Symbol.for("page-lifecycle-tracker.shared")`, thus two copies of the package share the tracker. The function throws an error where there is no `document`, for example in a worker.
+
+```ts
+import { getPageLifecycle } from "page-lifecycle-tracker";
+
+const lifecycle = getPageLifecycle();
+lifecycle.subscribe(({ to }) => console.log(to));
+```
+
+### createPageLifecycle()
+
+```ts
+function createPageLifecycle(options?: PageLifecycleOptions): PageLifecycle;
+```
+
+This function makes a new, private tracker each time, with the browser objects as defaults. It throws an error where there is no `document`.
+
+```ts
+import { createPageLifecycle } from "page-lifecycle-tracker";
+
+const lifecycle = createPageLifecycle({ logger: { log: (level, message) => console.warn(level, message) } });
+```
+
+### resetSharedPageLifecycle()
+
+```ts
+function resetSharedPageLifecycle(): void;
+```
+
+This function disposes of the shared tracker and removes it from the global object. The next call of `getPageLifecycle()` makes a new tracker. Tests use it.
+
+```ts
+afterEach(() => resetSharedPageLifecycle());
+```
+
+### isVisibleState()
+
+```ts
+function isVisibleState(state: LifecycleState): boolean;
+```
+
+This function gives `true` for `active` and `passive`: the states in which the page is visible.
+
+```ts
+if (!isVisibleState(lifecycle.getState())) pauseTheAnimation();
+```
+
+### eventTime()
+
+```ts
+function eventTime(event: unknown, now: number): number;
+```
+
+This function gives the time of an event in `performance.now()` time. It gives the `timeStamp` of the event if that value is a number above 0 and not after `now`. If not, it gives `now`. Old browsers gave Unix time in `timeStamp`.
+
+```ts
+eventTime({ timeStamp: 1250.5 }, performance.now()); // 1250.5
+eventTime({ timeStamp: 1700000000000 }, 2000); // 2000
+```
+
+### summarizeTransitions()
+
+```ts
+function summarizeTransitions(transitions: readonly StateTransition[]): LifecycleSummary;
+```
+
+This function summarizes a list of transitions, for example the transitions of a measurement window (refer to [marks](/docs/concepts/marks)).
+
+```ts
+const summary = summarizeTransitions(lifecycle.resolve(mark));
+if (summary.wasHidden) discardTheSample();
+```
+
+## The PageLifecycle class
+
+```ts
+class PageLifecycle {
+    constructor(document: LifecycleDocument, window: LifecycleWindow, clock: Clock, logger: Logger);
+}
+```
+
+The constructor reads the state at the start and adds the listeners. Usually, use `getPageLifecycle()` or `createPageLifecycle()` instead of the constructor.
+
+### getState()
+
+```ts
+getState(): LifecycleState;
+```
+
+This method gives the current state. Each call reads `document.visibilityState` again. If the value changed before its `visibilitychange` event came, the method makes the transition at that time.
+
+```ts
+console.log(getPageLifecycle().getState()); // "active"
+```
+
+### subscribe()
+
+```ts
+subscribe(listener: (transition: StateTransition) => void, options?: SubscribeOptions): () => void;
+```
+
+This method sends each transition to `listener`, and gives a function that removes the subscription. All `observe` subscribers of a transition start before all `export` subscribers. An error in a subscriber goes to the logger, and the other subscribers still start.
+
+```ts
+const unsubscribe = lifecycle.subscribe(({ from, to, trigger, timestamp }) => {
+    console.log(`${from} to ${to} (${trigger}) at ${timestamp.toFixed(0)} ms`);
+});
+unsubscribe();
+```
+
+### handle()
+
+```ts
+handle(event: unknown): void;
+```
+
+This method handles a lifecycle event of the browser at once, before the listener of the tracker gets it. Then the tracker handles that event object only one time. The tracker ignores an event of another type, and a value that is not an event.
+
+```ts
+window.addEventListener("pagehide", (event) => {
+    lifecycle.handle(event);
+    exporter.flush();
+});
+```
+
+### mark()
+
+```ts
+mark(): LifecycleMark;
+```
+
+This method puts a mark at the current point of the transition stream. Use `resolve(mark)` later to get the transitions after the mark.
+
+### resolve()
+
+```ts
+resolve(mark: LifecycleMark): StateTransition[];
+```
+
+This method gives all transitions that occurred after the mark, and then removes the mark. It gives an empty array if the mark is unknown, for example if it is already resolved.
+
+```ts
+const mark = lifecycle.mark();
+await doSomeWork();
+const transitions = lifecycle.resolve(mark);
+```
+
+### cancel()
+
+```ts
+cancel(mark: LifecycleMark): void;
+```
+
+This method removes a mark, but it does not give its transitions. Use it when the measurement stops with an error.
+
+### dispose()
+
+```ts
+dispose(): void;
+```
+
+This method removes all DOM listeners, all marks, all subscribers and the buffered transitions. After `dispose()`, `handle()` ignores all events.
+
+### getBufferedCount(), getMarkCount() and getTotalTransitions()
+
+```ts
+getBufferedCount(): number;
+getMarkCount(): number;
+getTotalTransitions(): number;
+```
+
+`getBufferedCount()` gives the number of transitions in the buffer at this time, for tests and debug. `getMarkCount()` gives the number of open marks. `getTotalTransitions()` gives the total number of transitions since the start of the tracker.
+
+## Types
+
+### LifecycleState and LifecycleTrigger
+
+```ts
+type LifecycleState = "active" | "passive" | "hidden" | "frozen" | "terminated";
+
+type LifecycleTrigger = "focus" | "blur" | "visibilitychange" | "freeze" | "resume" | "pagehide" | "pageshow";
+```
+
+`LifecycleState` is the state of the page. The tracker does not model the "discarded" state. `LifecycleTrigger` is the browser event that caused a transition.
+
+### StateTransition
+
+```ts
+type StateTransition = {
+    from: LifecycleState;
+    to: LifecycleState;
+    trigger: LifecycleTrigger;
+    /** The time of the browser event, in performance.now() time. */
+    timestamp: number;
+};
+```
+
+One change of the state. For a restore from the back/forward cache, `from` and `to` can be the same.
+
+### LifecycleMark
+
+```ts
+type LifecycleMark = {
+    readonly id: symbol;
+};
+```
+
+A point in the stream of transitions, from `mark()`.
+
+### SubscriberPhase and SubscribeOptions
+
+```ts
+type SubscriberPhase = "observe" | "export";
+
+type SubscribeOptions = {
+    /** The default is "observe". */
+    phase?: SubscriberPhase;
+};
+```
+
+All `observe` subscribers of a transition start before all `export` subscribers, in the order of their subscription in each phase. Monitors observe. An exporter that sends the telemetry at the end of the page exports.
+
+### PageLifecycleOptions and LifecycleGlobals
+
+```ts
+type PageLifecycleOptions = {
+    /** The default is globalThis.document. */
+    document?: LifecycleDocument;
+    /** The default is globalThis (the window of the page). */
+    window?: LifecycleWindow;
+    /** The default is performance. */
+    clock?: Clock;
+    /** The logger of the errors of subscribers. The default writes them to console.error. */
+    logger?: Logger;
+};
+
+type LifecycleGlobals = {
+    document?: LifecycleDocument;
+    window?: LifecycleWindow;
+    performance?: Clock;
+};
+```
+
+`PageLifecycleOptions` are the options of `getPageLifecycle()` and `createPageLifecycle()`. Without `performance`, the clock is `Date.now()`. `LifecycleGlobals` is the part of the global object of a page that the tracker uses.
+
+### LifecycleSummary
+
+```ts
+type LifecycleSummary = {
+    wasHidden: boolean;
+    wasFrozen: boolean;
+    wasTerminated: boolean;
+    wasRestoredFromBFCache: boolean;
+    wasFocused: boolean;
+    wasBlurred: boolean;
+    transitionCount: number;
+};
+```
+
+The result of `summarizeTransitions()`. The [marks](/docs/concepts/marks#summarizetransitions) page tells the meaning of each field.
+
+### The browser objects
+
+```ts
+type LifecycleListener = (event: unknown) => void;
+
+type LifecycleListenerOptions = { capture?: boolean };
+
+type LifecycleEventTarget = {
+    addEventListener(type: string, listener: LifecycleListener, options?: LifecycleListenerOptions): void;
+    removeEventListener(type: string, listener: LifecycleListener, options?: LifecycleListenerOptions): void;
+};
+
+type LifecycleDocument = LifecycleEventTarget & {
+    visibilityState: string;
+    hasFocus?: () => boolean;
+};
+
+type LifecycleWindow = LifecycleEventTarget;
+```
+
+These types are the parts of `document` and `window` that the tracker uses. Thus a test can give simulated objects. The listeners of the tracker read only two properties of an event object: `persisted` (of `pagehide` and `pageshow`) and `timeStamp`. `handle()` also reads `type`.
+
+### Clock and Logger
+
+```ts
+type Clock = {
+    now(): number;
+};
+
+type Logger = {
+    log(level: string, message: string, details?: unknown): void;
+};
+```
+
+`Clock` is a monotonic clock in milliseconds, for example `performance`. `Logger` gets the errors of the subscribers.

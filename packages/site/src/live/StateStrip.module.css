@@ -1,0 +1,181 @@
+.strip {
+  margin: 0;
+  min-width: 0;
+}
+
+.track {
+  position: relative;
+  height: 2.75rem;
+  border-radius: 8px;
+  background-color: var(--color-surface-sunken);
+  background-image: repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), var(--color-rule) calc(10% - 1px) 10%);
+}
+
+.segment {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  min-width: 2px;
+  overflow: hidden;
+  border-right: 2px solid var(--color-surface);
+  border-radius: 6px;
+  background: var(--segment-wash);
+  box-shadow: inset 0 -6px 0 var(--segment-color);
+}
+
+.segment[data-open] {
+  border-right: 0;
+}
+
+.segment[data-hover] {
+  box-shadow: inset 0 -6px 0 var(--segment-color), inset 0 0 0 2px var(--segment-color);
+}
+
+/* A texture tells frozen and terminated apart without color. */
+.segment[data-state="frozen"] {
+  background-image: repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--segment-color) 28%, transparent) 6px 8px);
+}
+
+.segment[data-state="terminated"] {
+  background-image:
+    repeating-linear-gradient(45deg, transparent 0 6px, color-mix(in srgb, var(--segment-color) 26%, transparent) 6px 8px),
+    repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--segment-color) 26%, transparent) 6px 8px);
+}
+
+.segmentLabel {
+  position: absolute;
+  top: 0.45rem;
+  left: 0.6rem;
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.loadMarker {
+  position: absolute;
+  top: -0.35rem;
+  bottom: -0.35rem;
+  width: 0;
+  border-left: 2px dashed var(--color-ink-muted);
+}
+
+.now {
+  position: absolute;
+  top: -0.35rem;
+  bottom: -0.35rem;
+  right: -1px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--color-ink);
+}
+
+.now::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-ink);
+}
+
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 0.6rem);
+  z-index: 5;
+  display: grid;
+  gap: 0.1rem;
+  width: max-content;
+  max-width: 16rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--color-rule-strong);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.tooltipState {
+  font-family: var(--font-mono);
+}
+
+.tooltipMuted {
+  color: var(--color-ink-secondary);
+}
+
+.axis {
+  position: relative;
+  height: 1.4rem;
+  margin: 0.3rem 0.25rem 0 0;
+  color: var(--color-ink-muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+.tick {
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.tick:first-child {
+  transform: none;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.1rem;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+}
+
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.legend li[data-empty] {
+  color: var(--color-ink-muted);
+}
+
+.legend code {
+  font-size: 0.85rem;
+}
+
+.swatch {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 3px;
+  background: var(--segment-wash);
+  box-shadow: inset 0 -4px 0 var(--segment-color), inset 0 0 0 1px var(--segment-color);
+}
+
+.swatch[data-state="frozen"] {
+  background-image: repeating-linear-gradient(135deg, transparent 0 3px, var(--segment-color) 3px 4px);
+}
+
+.swatch[data-state="terminated"] {
+  background-image:
+    repeating-linear-gradient(45deg, transparent 0 3px, var(--segment-color) 3px 4px),
+    repeating-linear-gradient(135deg, transparent 0 3px, var(--segment-color) 3px 4px);
+}
+
+.total {
+  color: var(--color-ink-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.legend li[data-empty] .total {
+  color: var(--color-ink-muted);
+}

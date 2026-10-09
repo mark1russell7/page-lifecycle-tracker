@@ -1,0 +1,173 @@
+/*
+ * Design tokens. The light theme is the default. The dark theme applies when
+ * the reader selects it, or when the system prefers dark and the reader did
+ * not select light.
+ *
+ * Concept: an instrument for the life of a page. Day paper in the light
+ * theme, a night sky in the dark theme. Hairlines and a dot grid. The five
+ * lifecycle states have their own colors (validated for color vision
+ * deficiency on the surface, always with a label). The accent is the color of
+ * the state "active".
+ */
+
+:root {
+  color-scheme: light;
+
+  --color-page: #f5f5fa;
+  --color-surface: #ffffff;
+  --color-surface-sunken: #eeeef5;
+  --color-ink: #15141f;
+  --color-ink-secondary: #464458;
+  --color-ink-muted: #63607a;
+  --color-rule: #dcdbe7;
+  --color-rule-strong: #b2b0c6;
+  --color-control-border: #7d7a95;
+  --color-grid: #e2e1ec;
+  --color-accent: #0b7a52;
+  --color-accent-strong: #075c3d;
+  --color-accent-wash: #e0f3ea;
+  --color-mark: #c7354f;
+  --color-mark-wash: #fbe8ec;
+
+  /* The lifecycle states. */
+  --state-active: #0f8a5f;
+  --state-passive: #d29a00;
+  --state-hidden: #6b56e0;
+  --state-frozen: #0f9ccf;
+  --state-terminated: #d94a6a;
+
+  /* The subscriber phases of the listener-order animation. */
+  --phase-observe: var(--color-accent);
+  --phase-export: #9a5b00;
+
+  /* The status colors have a fixed meaning. Always show them with an icon and a label. */
+  --status-good: #0ca30c;
+  --status-good-ink: #006300;
+  --status-warning: #fab219;
+  --status-warning-ink: #7a5200;
+  --status-critical: #d03b3b;
+  --status-critical-ink: #a3262a;
+
+  --font-sans: "Atkinson Hyperlegible Next Variable", "Atkinson Hyperlegible Next", system-ui, sans-serif;
+  --font-mono: "Atkinson Hyperlegible Mono Variable", "Atkinson Hyperlegible Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+  /* The type scale (17 px base). */
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
+  --text-base: 1.0625rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 2rem;
+  --text-3xl: 2.75rem;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 2.5rem;
+  --space-8: 3rem;
+  --space-10: 4rem;
+
+  --radius: 8px;
+  --radius-small: 4px;
+  --measure: 68ch;
+  --page-width: 84rem;
+  --header-height: 3.75rem;
+  --gutter: clamp(1rem, 3vw, 2rem);
+}
+
+/* The light fill behind text, from each state color. */
+:root {
+  --state-active-wash: color-mix(in srgb, var(--state-active) 15%, var(--color-surface));
+  --state-passive-wash: color-mix(in srgb, var(--state-passive) 17%, var(--color-surface));
+  --state-hidden-wash: color-mix(in srgb, var(--state-hidden) 15%, var(--color-surface));
+  --state-frozen-wash: color-mix(in srgb, var(--state-frozen) 15%, var(--color-surface));
+  --state-terminated-wash: color-mix(in srgb, var(--state-terminated) 14%, var(--color-surface));
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-page: #100f19;
+  --color-surface: #17161f;
+  --color-surface-sunken: #1e1d29;
+  --color-ink: #ecebf5;
+  --color-ink-secondary: #bfbdd1;
+  --color-ink-muted: #9b98b1;
+  --color-rule: #2a2939;
+  --color-rule-strong: #474560;
+  --color-control-border: #6f6c8a;
+  --color-grid: #25243a;
+  --color-accent: #5ad69d;
+  --color-accent-strong: #8fe8c0;
+  --color-accent-wash: #12342a;
+  --color-mark: #ff7a90;
+  --color-mark-wash: #3a1b24;
+
+  --state-active: #0d844c;
+  --state-passive: #bd891c;
+  --state-hidden: #805fda;
+  --state-frozen: #089ac3;
+  --state-terminated: #e1627c;
+
+  --phase-export: #e0a650;
+
+  --status-good-ink: #4cc94c;
+  --status-warning-ink: #fab219;
+  --status-critical-ink: #ff8a8a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --color-page: #100f19;
+    --color-surface: #17161f;
+    --color-surface-sunken: #1e1d29;
+    --color-ink: #ecebf5;
+    --color-ink-secondary: #bfbdd1;
+    --color-ink-muted: #9b98b1;
+    --color-rule: #2a2939;
+    --color-rule-strong: #474560;
+    --color-control-border: #6f6c8a;
+    --color-grid: #25243a;
+    --color-accent: #5ad69d;
+    --color-accent-strong: #8fe8c0;
+    --color-accent-wash: #12342a;
+    --color-mark: #ff7a90;
+    --color-mark-wash: #3a1b24;
+
+    --state-active: #0d844c;
+    --state-passive: #bd891c;
+    --state-hidden: #805fda;
+    --state-frozen: #089ac3;
+    --state-terminated: #e1627c;
+
+    --phase-export: #e0a650;
+
+    --status-good-ink: #4cc94c;
+    --status-warning-ink: #fab219;
+    --status-critical-ink: #ff8a8a;
+  }
+}
+
+/* In the dark theme, the fills are darker: the state color on the surface, at a lower amount. */
+:root[data-theme="dark"] {
+  --state-active-wash: color-mix(in srgb, var(--state-active) 26%, var(--color-surface));
+  --state-passive-wash: color-mix(in srgb, var(--state-passive) 24%, var(--color-surface));
+  --state-hidden-wash: color-mix(in srgb, var(--state-hidden) 26%, var(--color-surface));
+  --state-frozen-wash: color-mix(in srgb, var(--state-frozen) 26%, var(--color-surface));
+  --state-terminated-wash: color-mix(in srgb, var(--state-terminated) 24%, var(--color-surface));
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --state-active-wash: color-mix(in srgb, var(--state-active) 26%, var(--color-surface));
+    --state-passive-wash: color-mix(in srgb, var(--state-passive) 24%, var(--color-surface));
+    --state-hidden-wash: color-mix(in srgb, var(--state-hidden) 26%, var(--color-surface));
+    --state-frozen-wash: color-mix(in srgb, var(--state-frozen) 26%, var(--color-surface));
+    --state-terminated-wash: color-mix(in srgb, var(--state-terminated) 24%, var(--color-surface));
+  }
+}

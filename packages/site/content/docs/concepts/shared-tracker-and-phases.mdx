@@ -1,0 +1,89 @@
+---
+title: The shared tracker and the subscriber phases
+nav: Shared tracker and phases
+description: How getPageLifecycle() gives one Page Lifecycle tracker to all libraries of a page, and how the observe and export phases put monitors before exporters.
+order: 12
+---
+
+## One tracker for each page
+
+`getPageLifecycle()` gives the tracker that all libraries of the page share. Its first use makes the tracker with its options. A later use gives the same tracker and ignores its options.
+
+The tracker is on the global object, under the key `Symbol.for("page-lifecycle-tracker.shared")`. `Symbol.for()` gives the same symbol in each copy of the package. Thus two libraries share the tracker also when they bundle two copies or two versions of the package.
+
+```ts
+// In a monitoring library
+import { getPageLifecycle } from "page-lifecycle-tracker";
+const lifecycle = getPageLifecycle();
+```
+
+```ts
+// In an exporter, in another bundle
+import { getPageLifecycle } from "page-lifecycle-tracker";
+const sameLifecycle = getPageLifecycle(); // the same object as above
+```
+
+A shared tracker has a second advantage. The browser sends each event to one set of listeners, and all subscribers get the same transitions with the same times.
+
+## A private tracker
+
+`createPageLifecycle(options)` makes a new tracker each time. Use it in a test, or with a simulated `document` and `window`. A private tracker does not share its transitions. Thus the phases do not put its subscribers in order with the subscribers of the shared tracker.
+
+The two functions take the same options:
+
+| Option | Default | Use |
+|---|---|---|
+| `document` | `globalThis.document` | The source of `visibilityState`, `hasFocus()` and the document events |
+| `window` | `globalThis` | The source of `focus`, `blur`, `pagehide` and `pageshow` |
+| `clock` | `performance`, or `Date.now()` without `performance` | The time of a transition without an applicable event time |
+| `logger` | A logger that writes to `console.error` | The errors of the subscribers |
+
+## The subscriber phases
+
+`subscribe(listener, options)` adds a subscriber. The option `phase` is `"observe"` (the default) or `"export"`.
+
+In each transition, all `observe` subscribers start before all `export` subscribers. In each phase, the subscribers start in the order of their subscription. Thus the order of the scripts on the page is not important.
+
+```ts
+const lifecycle = getPageLifecycle();
+
+// The exporter subscribes first
+lifecycle.subscribe(() => exporter.flush(), { phase: "export" });
+
+// The monitor subscribes later, but it starts first in each transition
+lifecycle.subscribe((transition) => monitor.record(transition));
+```
+
+Monitors observe. An exporter that sends the telemetry at the end of the page exports. Then the last values of the monitors go into the last export.
+
+### The rules of subscribe()
+
+- `subscribe()` gives a function that removes the subscription.
+- The same function can subscribe two times. Then it gets each transition two times. Each remove function removes one subscription.
+- A subscriber that another subscriber of the same phase adds during a transition starts at the next transition.
+- An error in a subscriber goes to the logger, with the phase of the subscriber. The other subscribers of the transition still start.
+
+## handle(event) for an exporter with its own listener
+
+Some exporters keep their own `pagehide` listener. In Chromium, that listener can start before the listener of the tracker ([listener order](/docs/concepts/listener-order)). Such an exporter gives the event to the tracker before it flushes:
+
+```ts
+window.addEventListener("pagehide", (event) => {
+    // The tracker makes the transition now, and its subscribers record their values
+    getPageLifecycle().handle(event);
+    exporter.flush();
+});
+```
+
+`handle(event)` makes the transition of the event at once. The tracker keeps each event object that it handled in a `WeakSet`. Thus its own listener ignores the same event object later, and the transition occurs one time. The tracker ignores an event of another type, and a value that is not an event.
+
+## Reset the shared tracker in tests
+
+`resetSharedPageLifecycle()` disposes of the shared tracker and removes it from the global object. The next call of `getPageLifecycle()` makes a new tracker. Use it after each test that uses the shared tracker.
+
+```ts
+import { afterEach } from "vitest";
+import { resetSharedPageLifecycle } from "page-lifecycle-tracker";
+
+afterEach(() => resetSharedPageLifecycle());
+```

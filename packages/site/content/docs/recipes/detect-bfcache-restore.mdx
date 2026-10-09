@@ -1,0 +1,47 @@
+---
+title: Detect a back/forward cache restore
+nav: Detect a bfcache restore
+description: Find each restore of the page from the back/forward cache (bfcache) with a pageshow transition, and start a new page view for analytics and Web Vitals.
+order: 43
+---
+
+## The problem
+
+A restore from the back/forward cache does not load the page again, and no new navigation entry comes with it. For the user, the restore is a new page view. Thus an analytics library or a Web Vitals library must find the restore itself.
+
+## The solution
+
+Subscribe to the shared tracker, and look for the trigger `pageshow`. The tracker gives a `pageshow` transition only for a restore: a `pageshow` event with `persisted` set to `true`.
+
+```ts
+import { getPageLifecycle } from "page-lifecycle-tracker";
+
+let pageViewId = crypto.randomUUID();
+
+getPageLifecycle().subscribe(({ from, to, trigger, timestamp }) => {
+    if (trigger !== "pageshow") return;
+    // A restore: the page view of the cached page ended, and a new one starts now
+    pageViewId = crypto.randomUUID();
+    console.log(`Restored at ${timestamp.toFixed(0)} ms, ${from} to ${to}, page view ${pageViewId}`);
+});
+```
+
+The `timestamp` of the transition is the `timeStamp` of the `pageshow` event. Use it as the start of the new page view.
+
+## Look at the trigger, not at the states
+
+Chromium restores a page with `resume`, `visibilitychange` and then `pageshow`. Thus the state is already visible when `pageshow` comes. The tracker still gives the transition, but `from` and `to` are the same, for example `active` to `active`. A test of `from === "frozen"` does not find this restore. A test of `trigger === "pageshow"` finds each restore.
+
+## Find a restore in a measurement window
+
+For a window of measurements, use [marks](/docs/concepts/marks). `summarizeTransitions()` gives `wasRestoredFromBFCache: true` when the transitions of the window contain a restore.
+
+```ts
+const mark = lifecycle.mark();
+// ... the measurement ...
+const { wasRestoredFromBFCache } = summarizeTransitions(lifecycle.resolve(mark));
+```
+
+## Try it
+
+Open the [home page](/), leave it with its link to another page, and come back with the Back button. If the browser restores the page from the cache, the diagram shows the `pageshow` transition. Read [back/forward cache](/docs/concepts/back-forward-cache) for the causes when the browser does not restore a page.

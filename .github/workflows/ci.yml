@@ -14,7 +14,7 @@ concurrency:
 jobs:
   ci:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       # The pnpm version comes from "packageManager" in package.json
@@ -24,6 +24,8 @@ jobs:
           node-version: 26
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # The browser tests of the website (Vitest browser mode) need Chromium
+      - run: pnpm --filter ./packages/site exec playwright install --with-deps chromium
       - run: pnpm typecheck
       - run: pnpm test
       # The npm build of the package, and a check of the files that npm gets

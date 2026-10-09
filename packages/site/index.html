@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="A TypeScript library for the Page Lifecycle API: active, passive, hidden, frozen and terminated from visibilitychange, pagehide, freeze and bfcache restores." />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f5f5fa" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#100f19" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>page-lifecycle-tracker: Page Lifecycle API state for JavaScript</title>
+    <script>
+      // Apply the stored theme before the first paint, so the page does not flash.
+      (function () {
+        try {
+          var theme = window.localStorage.getItem("plt-site:theme");
+          if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
+        } catch (error) {
+          // The storage is not available. The page uses the system theme.
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>The live diagram of this site needs JavaScript. It runs the real library in the page.</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

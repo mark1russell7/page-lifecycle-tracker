@@ -1,0 +1,72 @@
+---
+title: Marks and the transitions of a measurement window
+nav: Marks
+description: Use mark(), resolve() and summarizeTransitions() to find the Page Lifecycle transitions of a measurement window, for example a hidden page or a bfcache restore.
+order: 15
+---
+
+## Why marks
+
+A monitor measures in windows, for example 100 ms of timer callbacks. If the page was hidden or frozen during the window, the result is not a measurement of the page. Marks tell the monitor which transitions occurred between the start and the end of the window.
+
+## mark(), resolve() and cancel()
+
+- `mark()` puts a mark at the current point of the transition stream, and gives the mark.
+- `resolve(mark)` gives all transitions that occurred after the mark, and then removes the mark.
+- `cancel(mark)` removes the mark, but it does not give its transitions.
+
+```ts
+const lifecycle = getPageLifecycle();
+
+const mark = lifecycle.mark();
+const sample = await measureOneWindow();
+const transitions = lifecycle.resolve(mark);
+
+if (transitions.length === 0) record(sample);
+```
+
+`resolve()` gives an empty array for an unknown mark, for example a mark that is already resolved or cancelled. Each call to `resolve()` or `cancel()` affects only its own mark. The other open marks keep their transitions.
+
+`mark()` and `resolve()` read `document.visibilityState` again. Thus a change to `hidden` before its `visibilitychange` event is in the result.
+
+## The buffer exists only while a mark is open
+
+The tracker keeps the transitions only while a mark is open. When no mark is open, it keeps no transitions, because nobody can resolve them later.
+
+On each `resolve()` and `cancel()`, the tracker removes the transitions that are older than the earliest open mark. Thus resolve or cancel each mark. A mark that you forget keeps all later transitions in memory.
+
+Two methods show the buffer, for tests and debug:
+
+- `getBufferedCount()` gives the number of transitions in the buffer at this time.
+- `getMarkCount()` gives the number of open marks.
+
+`getTotalTransitions()` gives the number of transitions since the start of the tracker. It does not use marks.
+
+## summarizeTransitions()
+
+`summarizeTransitions(transitions)` gives a summary of a list of transitions:
+
+| Field | Value |
+|---|---|
+| `wasHidden` | `true` if a transition went to `hidden` |
+| `wasFrozen` | `true` if a transition went to `frozen` |
+| `wasTerminated` | `true` if a transition went to `terminated` |
+| `wasRestoredFromBFCache` | `true` if a transition has the trigger `pageshow` |
+| `wasFocused` | `true` if a transition has the trigger `focus` |
+| `wasBlurred` | `true` if a transition has the trigger `blur` |
+| `transitionCount` | The number of transitions in the list |
+
+```ts
+const summary = summarizeTransitions(lifecycle.resolve(mark));
+if (summary.wasHidden || summary.wasFrozen || summary.wasRestoredFromBFCache) discard(sample);
+```
+
+The [recipe for marks](/docs/recipes/discard-samples-with-marks) shows a full monitor.
+
+## The time of a transition
+
+The `timestamp` of a transition is the `timeStamp` of its event, in `performance.now()` time. Thus the transition has the time when the browser made the event, not the later time when the listener started.
+
+`eventTime(event, now)` gives the rule. The time of the event is applicable if it is a number above 0 and not after `now`. If not, the transition gets `now`, the current time of the clock. Old browsers gave Unix time in `timeStamp`, and this rule ignores such values.
+
+A transition from a new read of `visibilityState` has no event. Thus it has the time of the read.

@@ -1,0 +1,76 @@
+---
+title: Flush OpenTelemetry at the end of the page
+nav: Flush OpenTelemetry
+description: Send the last OpenTelemetry spans and metrics when the page becomes hidden, frozen or terminated, after the monitors record their values, with the export phase.
+order: 40
+---
+
+## The problem
+
+An exporter sends its last batch when the page becomes hidden or goes away. The monitors of the page record their last values at the same events. If the exporter flushes first, the last values are not in the last batch.
+
+The browser `BatchSpanProcessor` of OpenTelemetry JS adds its own `visibilitychange` and `pagehide` listeners, and they start `forceFlush()`. The order of such listeners and the listeners of the monitors depends on the engine and on the order of the scripts. In Chromium, the `pagehide` listeners of `window` start in the order of their registration ([listener order](/docs/concepts/listener-order)).
+
+## The solution: flush in the export phase
+
+Turn off the automatic flush of the processor, and flush from an `export` subscriber of the shared tracker. In each transition, the tracker starts all `observe` subscribers first. Thus the monitors record their values before the flush, in each engine.
+
+```ts
+import { trace } from "@opentelemetry/api";
+import { BatchSpanProcessor, TracerProvider } from "@opentelemetry/sdk-trace";
+import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
+import { MeterProvider, PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
+import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
+import { getPageLifecycle, isVisibleState } from "page-lifecycle-tracker";
+
+// The tracker starts the flush, thus the processor does not flush on its own
+const spans = new BatchSpanProcessor({ exporter: new OTLPTraceExporter(), disableAutoFlushOnDocumentHide: true });
+trace.setGlobalTracerProvider(new TracerProvider({ spanProcessors: [spans] }));
+
+const meterProvider = new MeterProvider({
+    readers: [new PeriodicExportingMetricReader({ exporter: new OTLPMetricExporter() })],
+});
+
+// Flush after all observe subscribers of the transition
+getPageLifecycle().subscribe(({ to }) => {
+    if (isVisibleState(to)) return;
+    void spans.forceFlush();
+    void meterProvider.forceFlush();
+}, { phase: "export" });
+```
+
+The subscriber flushes at each change to `hidden`, `frozen` or `terminated`. A page can become visible again after `hidden` or `frozen`. Then the next change to a state that is not visible flushes again.
+
+<Callout type="note" title="Package versions">
+The example uses `@opentelemetry/sdk-trace`, the package that replaces `sdk-trace-base` and `sdk-trace-web`. In that package, the `BatchSpanProcessor` constructor takes one options object with the `exporter`. With `@opentelemetry/sdk-trace-base` 2.x, the constructor is `new BatchSpanProcessor(exporter, config)`.
+</Callout>
+
+## A monitor in the observe phase
+
+A monitor subscribes in the default phase. It records its last value, and the flush of the export phase sends it. This monitor uses the `meterProvider` of the first example:
+
+```ts
+const histogram = meterProvider.getMeter("page").createHistogram("page.visible_time");
+let visibleSince = performance.now();
+
+getPageLifecycle().subscribe(({ from, to, timestamp }) => {
+    if (isVisibleState(from) && !isVisibleState(to)) histogram.record(timestamp - visibleSince);
+    if (!isVisibleState(from) && isVisibleState(to)) visibleSince = timestamp;
+});
+```
+
+The order of the two subscriptions is not important. The monitor can subscribe after the exporter, and it still records first.
+
+## An exporter with its own pagehide listener
+
+Some exporters keep their own `pagehide` listener. Such an exporter gives the event to the tracker with `handle(event)`, and then flushes:
+
+```ts
+window.addEventListener("pagehide", (event) => {
+    // The transition to frozen or terminated occurs now, and the monitors record their values
+    getPageLifecycle().handle(event);
+    void spans.forceFlush();
+});
+```
+
+The tracker handles each event object one time. When its own listener gets the same event later, it ignores the event. Refer to [handle(event)](/docs/concepts/shared-tracker-and-phases#handleevent-for-an-exporter-with-its-own-listener).

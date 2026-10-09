@@ -1,0 +1,50 @@
+---
+title: The freeze event and the resume event
+nav: Freeze and resume
+description: When Chromium sends the Page Lifecycle freeze event and the resume event, how the tracker changes the state, and what Firefox and Safari do instead.
+order: 14
+---
+
+## The frozen state
+
+A frozen page does no tasks. The [Page Lifecycle specification](https://wicg.github.io/page-lifecycle/) also blocks the dedicated workers of a frozen document.
+
+The tracker changes the state to `frozen` at a `freeze` event. It changes the state from `frozen` to `hidden` at a `resume` event. Thus after `resume`, the page is still hidden. A later `visibilitychange` changes `hidden` to `active` or `passive`.
+
+```ts
+getPageLifecycle().subscribe(({ from, to, trigger }) => {
+    if (to === "frozen") console.log(`Frozen by ${trigger}, from ${from}`);
+    if (trigger === "resume") console.log("Resumed: the page is still hidden");
+});
+```
+
+A second `freeze` of a frozen page gives no second transition.
+
+## Browser support of the freeze event
+
+Only Chromium has the `freeze` and `resume` events, from version 68. Edge has them from version 79. Firefox and Safari do not have them.
+
+In Firefox and Safari, the page becomes `frozen` only at a `pagehide` event with `persisted` set to `true`. That event shows that the page goes into the [back/forward cache](/docs/concepts/back-forward-cache).
+
+Chromium also has `document.wasDiscarded`. The tracker does not use it, because no script operates in a discarded page. A page reads it after the reload.
+
+## When Chrome freezes a page
+
+Chrome freezes a page in these conditions:
+
+- The page goes into the back/forward cache.
+- The tab is in a collapsed tab group.
+- Energy Saver freezes a hidden tab that uses much CPU time. This feature is for desktop computers, from Chrome 133, with a gradual rollout.
+- On Android, Chrome freezes background pages and their workers after 5 minutes. From Chrome 139, the time is 1 minute.
+
+## Workers of a frozen page
+
+On desktop, the pause of dedicated workers in a frozen document is behind a flag at this time. Thus the timers of a desktop worker can continue while its page is frozen.
+
+Firefox pauses dedicated workers when the document goes into the back/forward cache.
+
+## Freeze, resume and timers
+
+A freeze and a resume make one very long gap between two timer callbacks. A monitor that measures timers must exclude these intervals. Use the `frozen` state to find them, or use [marks](/docs/concepts/marks) for each measurement window.
+
+Chromium restores a page from the back/forward cache with `resume`, `visibilitychange` and then `pageshow`. Thus a restore gives the transitions `frozen` to `hidden`, `hidden` to a visible state, and a `pageshow` transition.

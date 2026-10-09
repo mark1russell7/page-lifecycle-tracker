@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta name="color-scheme" content="light dark" />
+    <title>You left the page – page-lifecycle-tracker</title>
+    <style>
+      :root {
+        --page: #f5f5fa;
+        --surface: #ffffff;
+        --ink: #15141f;
+        --muted: #464458;
+        --rule: #dcdbe7;
+        --accent: #0b7a52;
+        --frozen: #0f9ccf;
+        --terminated: #d94a6a;
+        color-scheme: light;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --page: #100f19;
+          --surface: #17161f;
+          --ink: #ecebf5;
+          --muted: #bfbdd1;
+          --rule: #2a2939;
+          --accent: #5ad69d;
+          --frozen: #089ac3;
+          --terminated: #e1627c;
+          color-scheme: dark;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 1rem;
+        background: var(--page);
+        color: var(--ink);
+        font: 1.0625rem/1.6 "Atkinson Hyperlegible Next", system-ui, sans-serif;
+      }
+      main {
+        max-width: 34rem;
+        padding: 2rem;
+        border: 1px solid var(--rule);
+        border-radius: 18px;
+        background: var(--surface);
+      }
+      h1 { margin: 0 0 0.75rem; font-size: 1.75rem; line-height: 1.15; letter-spacing: -0.02em; }
+      p { margin: 0 0 1rem; color: var(--muted); }
+      .states { display: flex; gap: 0.5rem; margin: 0 0 1.25rem; padding: 0; list-style: none; font-family: ui-monospace, Consolas, monospace; font-size: 0.9rem; }
+      .states li { padding: 0.15rem 0.6rem; border: 2px solid var(--frozen); border-radius: 999px; }
+      .states li + li { border-color: var(--terminated); border-style: dashed; }
+      button, a.button {
+        display: inline-flex;
+        align-items: center;
+        min-height: 2.75rem;
+        padding: 0.5rem 1.1rem;
+        border: 1px solid var(--accent);
+        border-radius: 8px;
+        background: var(--accent);
+        color: var(--surface);
+        font: inherit;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>You left the page</h1>
+      <ul class="states" aria-label="The two possible states of the page that you left">
+        <li>frozen</li>
+        <li>terminated</li>
+      </ul>
+      <p>
+        The page that you left got a <code>pagehide</code> event. If the browser keeps it in the back/forward cache, the page is
+        <code>frozen</code>. If not, the page is <code>terminated</code>.
+      </p>
+      <p>Go back with the Back button of the browser, or with this button. Then look at the state strip of the page.</p>
+      <p><button type="button" id="back">Go back</button></p>
+    </main>
+    <script>
+      document.getElementById("back").addEventListener("click", function () {
+        // A page that the reader opened directly has no page to go back to.
+        if (history.length > 1) history.back();
+        else location.href = "./";
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,228 @@
+.diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  font-family: var(--font-sans);
+}
+
+.group {
+  fill: color-mix(in srgb, var(--color-surface) 55%, transparent);
+  stroke: var(--color-rule-strong);
+  stroke-width: 1.5;
+  stroke-dasharray: 2 6;
+  stroke-linecap: round;
+}
+
+.groupLabel {
+  fill: var(--color-ink-muted);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.edge {
+  fill: none;
+  stroke: var(--color-rule-strong);
+  stroke-width: 1.75;
+  transition: stroke 400ms ease, stroke-width 400ms ease;
+}
+
+.edge[data-lit] {
+  stroke: var(--edge-color);
+  stroke-width: 2.75;
+}
+
+.arrowMuted {
+  fill: var(--color-rule-strong);
+}
+
+/* The new transition draws its edge, then the trace fades. */
+.trace {
+  fill: none;
+  stroke: var(--edge-color);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  animation: trace 1.8s cubic-bezier(0.45, 0, 0.2, 1) forwards;
+}
+
+.trace[data-motion="reduced"] {
+  animation: none;
+  stroke-dashoffset: 0;
+  opacity: 0.3;
+}
+
+@keyframes trace {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 0.55;
+  }
+  50% {
+    stroke-dashoffset: 0;
+    opacity: 0.55;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+.comet {
+  opacity: 0;
+}
+
+.comet[data-running] {
+  animation: comet 1s ease-out forwards;
+}
+
+@keyframes comet {
+  0%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.edgeLabel {
+  fill: var(--color-ink-muted);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  paint-order: stroke;
+  stroke: var(--diagram-surface, var(--color-surface));
+  stroke-width: 5px;
+  stroke-linejoin: round;
+}
+
+.edgeLabel[data-lit] {
+  fill: var(--color-ink);
+  font-weight: 700;
+}
+
+.pill {
+  fill: var(--color-surface);
+  stroke: var(--node-color);
+  stroke-width: 2;
+  transition: fill 400ms ease, stroke-width 400ms ease;
+}
+
+.node[data-node="terminated"] .pill {
+  stroke-dasharray: 6 5;
+}
+
+.node[data-current] .pill {
+  fill: var(--node-wash);
+  stroke-width: 3;
+}
+
+.halo {
+  fill: var(--node-color);
+  opacity: 0.42;
+  animation: breathe 3.2s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.28;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.liveDot {
+  fill: var(--node-color);
+}
+
+.stateName {
+  fill: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.node:not([data-current]) .stateName {
+  font-weight: 600;
+}
+
+.summary {
+  fill: var(--color-ink-secondary);
+  font-size: 12.5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .halo {
+    animation: none;
+    opacity: 0.4;
+  }
+}
+
+/*
+ * The diagram scales with its width. Below 560 px, the component uses the
+ * tall arrangement (data-layout="portrait"), with larger labels. The HTML of
+ * the build has the wide arrangement. Thus, in a narrow frame before the app
+ * starts, the frame hides the small labels of the wide arrangement and makes
+ * the state names larger.
+ */
+.frame {
+  container-type: inline-size;
+  min-width: 0;
+}
+
+.diagram[data-layout="portrait"] .edgeLabel {
+  font-size: 13.5px;
+}
+
+.diagram[data-layout="portrait"] .groupLabel {
+  font-size: 14px;
+}
+
+.diagram[data-layout="portrait"] .stateName {
+  font-size: 19px;
+}
+
+.diagram[data-layout="portrait"] .summary {
+  font-size: 12px;
+}
+
+@container (max-width: 36rem) {
+  .diagram[data-layout="landscape"] .edgeLabel,
+  .diagram[data-layout="landscape"] .summary,
+  .diagram[data-layout="landscape"] .liveDot {
+    display: none;
+  }
+
+  .diagram[data-layout="landscape"] .stateName {
+    font-size: 24px;
+    dominant-baseline: middle;
+  }
+
+  .diagram[data-layout="landscape"] .node .stateName {
+    transform: translate(0, 3px);
+  }
+
+  .diagram[data-layout="landscape"] .groupLabel {
+    font-size: 22px;
+  }
+
+  .diagram[data-layout="landscape"] .edge {
+    stroke-width: 3;
+  }
+
+  .diagram[data-layout="landscape"] .edge[data-lit] {
+    stroke-width: 4.5;
+  }
+
+  .diagram[data-layout="landscape"] .pill {
+    stroke-width: 3;
+  }
+
+  .diagram[data-layout="landscape"] .node[data-current] .pill {
+    stroke-width: 5;
+  }
+}

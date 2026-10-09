@@ -1,0 +1,62 @@
+# Builds the website (packages/site) and publishes it to GitHub Pages.
+# The Pages source of the repository is "GitHub Actions" (Settings > Pages).
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time. A newer push cancels a deployment that waits.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      # The pnpm version comes from "packageManager" in package.json
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # The build renders each page and each Open Graph image in Chromium
+      - name: Install Chromium and its system dependencies
+        run: pnpm --filter ./packages/site exec playwright install --with-deps chromium
+
+      - name: Build the site
+        run: pnpm --filter ./packages/site build
+        env:
+          SITE_BASE: ${{ github.event.repository.name }}
+          # The absolute URL of the site, for the canonical links, Open Graph and the sitemap
+          SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: packages/site/dist
+
+  deploy:
+    needs: build
+    # Only when the repository has Pages. The build job above still examines the site.
+    if: ${{ github.event.repository.has_pages }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,74 @@
+---
+title: Page Lifecycle API states and transitions
+nav: States and transitions
+description: The five Page Lifecycle API states (active, passive, hidden, frozen, terminated), the browser events that change them, and a simulator of the real tracker.
+order: 10
+layout: wide
+---
+
+## The five states
+
+The tracker follows the states of the [Page Lifecycle API](https://developer.chrome.com/docs/web-platform/page-lifecycle-api). The type `LifecycleState` has these five values:
+
+| State | Meaning | Visible |
+|---|---|---|
+| `active` | The page is visible, and it has the focus. | Yes |
+| `passive` | The page is visible, but it does not have the focus. | Yes |
+| `hidden` | The value of `document.visibilityState` is `hidden`. | No |
+| `frozen` | The browser stopped the tasks of the page, for example in the back/forward cache. | No |
+| `terminated` | The page unloads: a `pagehide` event came, and its `persisted` property is `false`. | No |
+
+`isVisibleState()` gives `true` for `active` and `passive`. Monitors usually treat these two states in the same way.
+
+## The state at the start
+
+The tracker reads the state when it starts. If `document.visibilityState` is `hidden`, the state is `hidden`. If not, the state is `active` when `document.hasFocus()` gives `true`, and `passive` when it gives `false`. Without `document.hasFocus()`, the tracker uses `active` for a visible page.
+
+The start is not a transition. The subscribers get no transition for it.
+
+## The transitions and their triggers
+
+Each transition has the properties `from`, `to`, `trigger` and `timestamp`. The trigger is the browser event that caused the transition.
+
+| Trigger | Target | Capture listener | Transition |
+|---|---|---|---|
+| `focus` | `window` | No | From `passive` to `active` |
+| `blur` | `window` | No | From `active` to `passive` |
+| `visibilitychange` | `document` | Yes | From a visible state to `hidden`, or from `hidden` to `active` or `passive` |
+| `freeze` | `document` | Yes | To `frozen` |
+| `resume` | `document` | Yes | To `hidden` |
+| `pagehide` | `window` | Yes | To `frozen` if `persisted` is `true`, and to `terminated` if it is `false` |
+| `pageshow` | `window` | Yes | To `active` or `passive`, only if `persisted` is `true` |
+
+These rules complete the table:
+
+- `focus` and `blur` change only a visible state. While the page is `hidden` or `frozen`, they do not change the state.
+- A `visibilitychange` event does not change the `frozen` state or the `terminated` state. Thus a page that gets `pagehide` and then `visibilitychange` stays `terminated`.
+- A second `freeze` of a frozen page gives no second transition.
+- A `pageshow` event without `persisted` is not a restore. The tracker ignores it.
+- A `pageshow` event with `persisted` is always a transition, also when the state does not change. Then `from` and `to` are the same, for example `active` to `active`. The [back/forward cache](/docs/concepts/back-forward-cache) page gives the cause.
+- The tracker has no `beforeunload` listener. A script can cancel that event, and then a live page has the state `terminated`. Such a listener can also make the page ineligible for the back/forward cache.
+
+[Capture phase and listener order](/docs/concepts/listener-order) tells why most listeners are capture listeners, and why `focus` and `blur` are not.
+
+## A new read of visibilityState
+
+The browser changes `document.visibilityState` immediately, but it dispatches the `visibilitychange` event in a separate task. A timer callback can start between the two.
+
+Thus `getState()`, `mark()` and `resolve()` read `document.visibilityState` again each time. If the value is different, the tracker makes the transition at that time, with the trigger `visibilitychange`. That transition has the time of the read, because no event came yet. When the event comes later, it gives no second transition.
+
+## No discarded state
+
+The tracker has no `discarded` state. In a discarded page, no script operates. Thus a page can find a discard only after the reload, through `document.wasDiscarded`. Only Chromium has `document.wasDiscarded` ([browser support](/docs/browser-support)).
+
+## `terminated` is the last state
+
+`terminated` is the last state of a page. A `visibilitychange`, a `focus` or a `blur` after it does not change it.
+
+## Try each trigger in the simulator
+
+The simulator operates the real tracker on a simulated `document` and `window`. Each button sends one DOM event to the simulated page. The simulator does not change the state of this page.
+
+<LifecycleSimulator />
+
+The [home page](/) shows the transitions of your real visit, from your own browser.

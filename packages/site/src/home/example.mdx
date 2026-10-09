@@ -1,0 +1,16 @@
+```ts
+import { getPageLifecycle } from "page-lifecycle-tracker";
+
+const lifecycle = getPageLifecycle(); // one shared tracker for the page
+console.log(lifecycle.getState()); // "active", "passive" or "hidden"
+
+// A monitor observes: it records its values first.
+lifecycle.subscribe(({ from, to, trigger, timestamp }) => {
+  console.log(`${from} to ${to} (${trigger}) at ${timestamp} ms`);
+});
+
+// An exporter sends after all observers, in each engine.
+lifecycle.subscribe(({ to }) => {
+  if (to === "hidden" || to === "frozen" || to === "terminated") exporter.flush();
+}, { phase: "export" });
+```

@@ -1,0 +1,48 @@
+---
+title: Pause timers while the page is hidden
+nav: Pause timers while hidden
+description: Stop a setInterval poller when the page becomes hidden or frozen, and start it again when the page is visible, with getState() and isVisibleState().
+order: 41
+---
+
+## The problem
+
+A hidden page gets fewer timer callbacks. Chrome can give a hidden page one timer wake-up each second, and one each minute under intensive throttling. A frozen page gets no callbacks. Thus a poller in a hidden page sends late requests, and a timer-driven monitor measures the throttle, not the page.
+
+## The solution
+
+Start the poller only in a visible state. Stop it at each change to `hidden`, `frozen` or `terminated`, and start it again at the change back.
+
+```ts
+import { getPageLifecycle, isVisibleState } from "page-lifecycle-tracker";
+
+/** This function calls `poll` each `intervalMs` milliseconds while the page is visible. */
+export function pollWhileVisible(poll: () => void, intervalMs: number): () => void {
+    const lifecycle = getPageLifecycle();
+    let timer: ReturnType<typeof setInterval> | undefined;
+
+    const start = () => { timer ??= setInterval(poll, intervalMs); };
+    const stop = () => {
+        clearInterval(timer);
+        timer = undefined;
+    };
+
+    // The state at the start: the page can be hidden already, for example in a background tab
+    if (isVisibleState(lifecycle.getState())) start();
+
+    const unsubscribe = lifecycle.subscribe(({ to }) => (isVisibleState(to) ? start() : stop()));
+    return () => {
+        unsubscribe();
+        stop();
+    };
+}
+```
+
+The function gives a function that stops the poller and removes the subscription.
+
+## Notes
+
+- Read `getState()` at the start. A page can open in a background tab, and then no transition comes until the user shows the tab.
+- A change between `active` and `passive` keeps the poller. Both states are visible. `start()` does nothing when the timer exists.
+- After a restore from the back/forward cache, the `pageshow` transition starts the poller again.
+- To poll only while the page has the focus, compare `to` with `"active"` instead of `isVisibleState(to)`.

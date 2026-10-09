@@ -1,0 +1,23 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0 0.5rem 0 0.4rem;
+  border-radius: 999px;
+  background: var(--wash);
+  box-shadow: inset 0 0 0 1.5px var(--dot);
+  vertical-align: baseline;
+}
+
+.badge code {
+  padding: 0;
+  background: transparent;
+  font-weight: 700;
+}
+
+.dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--dot);
+}
