@@ -21,6 +21,6 @@ pnpm lint:ste
 ## Release
 
 1. Set the version in `packages/page-lifecycle-tracker/package.json`.
-2. Push a tag with the same version, for example `v0.2.0`.
+2. Merge the change to `main`.
 
-The workflow `release.yml` tests the package and publishes it to npm with a provenance statement.
+The workflow `release.yml` tests the package and publishes it to npm with a provenance statement. `RELEASING.md` tells the procedure.
