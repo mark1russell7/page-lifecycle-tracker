@@ -17,6 +17,22 @@ function normalize(text: string): string {
     .replace(/[̀-ͯ]/g, "");
 }
 
+/**
+ * This function gives the index in `raw` that agrees with the index `offset` in `normalize(raw)`.
+ * The normalization can change the length of a character. For example, "…" becomes "..." and a combining mark goes away.
+ * When `offset` is in the normalized form of one character, the index is the start of that character.
+ */
+function rawIndex(raw: string, offset: number): number {
+  let index = 0;
+  let length = 0;
+  for (const char of raw) {
+    length += normalize(char).length;
+    if (length > offset) break;
+    index += char.length;
+  }
+  return index;
+}
+
 function count(text: string, word: string, limit: number): number {
   let total = 0;
   for (let index = text.indexOf(word); index >= 0 && total < limit; index = text.indexOf(word, index + word.length)) total++;
@@ -70,14 +86,17 @@ export function search(entries: readonly SearchEntry[], query: string, limit = 8
       }
     });
     const first = words.map((word) => ({ word, index: text.indexOf(word) })).find((item) => item.index >= 0);
-    const snippet =
-      first === undefined
-        ? undefined
-        : {
-            before: `${first.index > 60 ? "…" : ""}${entry.text.slice(Math.max(0, first.index - 60), first.index)}`,
-            match: entry.text.slice(first.index, first.index + first.word.length),
-            after: `${entry.text.slice(first.index + first.word.length, first.index + first.word.length + 100)}…`,
-          };
+    let snippet: SearchResult["snippet"];
+    if (first !== undefined) {
+      // The indexes of `text` are indexes of the normalized text. The snippet uses the indexes of the raw text.
+      const start = rawIndex(entry.text, first.index);
+      const end = rawIndex(entry.text, first.index + first.word.length);
+      snippet = {
+        before: `${start > 60 ? "…" : ""}${entry.text.slice(Math.max(0, start - 60), start)}`,
+        match: entry.text.slice(start, end),
+        after: `${entry.text.slice(end, end + 100)}…`,
+      };
+    }
     results.push({ entry, score, heading, snippet });
   }
   return results.sort((a, b) => b.score - a.score).slice(0, limit);

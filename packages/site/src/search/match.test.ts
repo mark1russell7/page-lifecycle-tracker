@@ -33,6 +33,18 @@ describe("search", () => {
     expect(results[0]?.snippet?.match.toLowerCase()).toBe("pagehide");
   });
 
+  it("highlights the match in the raw text when the normalization changes the length of the text before it", () => {
+    const entry = (text: string): SearchEntry => ({ path: "p", section: "S", title: "T", description: "D", headings: [], text });
+    // NFKD makes "..." of "…" and "fi" of the ligature "ﬁ". A combining mark goes away.
+    for (const text of ["Wait… then pagehide comes.", "The ﬁrst pagehide comes.", "Cafe\u0301 au lait, then pagehide comes."]) {
+      const snippet = search([entry(text)], "pagehide")[0]?.snippet;
+      expect(snippet?.match).toBe("pagehide");
+      expect(`${snippet?.before}${snippet?.match}${snippet?.after}`).toBe(`${text}…`);
+    }
+    // A character that the normalization makes longer stays complete in the snippet.
+    expect(search([entry("A ﬁle")], "file")[0]?.snippet?.match).toBe("ﬁle");
+  });
+
   it("finds only the pages that contain all the words", () => {
     expect(search(ENTRIES, "pagehide unload").map((result) => result.entry.path)).toEqual(["docs/concepts/back-forward-cache"]);
     expect(search(ENTRIES, "nothing here")).toEqual([]);
