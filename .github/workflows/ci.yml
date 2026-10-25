@@ -1,3 +1,7 @@
+# The CI of page-lifecycle-tracker: the shared CI of mark1russell7 (reusable-ci.yml of
+# mark1russell7/template, its CI.md). The job installs Chromium, runs typecheck, test and lint:ste
+# (the writing rules, ASD-STE100, of the README files and the doc comments) on Node.js 26, and then
+# builds the npm package and checks the files that npm gets.
 name: CI
 
 on:
@@ -15,23 +19,14 @@ concurrency:
 
 jobs:
   ci:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v7
-      # The pnpm version comes from "packageManager" in package.json
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 26
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
+    uses: mark1russell7/template/.github/workflows/reusable-ci.yml@a743392393fc72acd1f5557eefe06e097bc9f906 # main
+    with:
+      # Not "build": the job builds only the npm package (the command "run" below)
+      scripts: typecheck test lint:ste
       # The browser tests of the website (Vitest browser mode) need Chromium
-      - run: pnpm --filter ./packages/site exec playwright install --with-deps chromium
-      - run: pnpm typecheck
-      - run: pnpm test
+      setup: pnpm --filter ./packages/site exec playwright install --with-deps chromium
       # The npm build of the package, and a check of the files that npm gets
-      - run: pnpm --filter page-lifecycle-tracker build
-      - run: pnpm --filter page-lifecycle-tracker pack --dry-run
-      # The writing rules (ASD-STE100) of the README files and the doc comments
-      - run: pnpm lint:ste
+      run: |
+        pnpm --filter page-lifecycle-tracker build
+        pnpm --filter page-lifecycle-tracker pack --dry-run
+      timeout-minutes: 20
