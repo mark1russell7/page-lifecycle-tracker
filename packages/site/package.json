@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "@mark1russell7/cue": "github:mark1russell7/cue",
+    "@mark1russell7/site-pages": "^0.2.6",
     "@mdx-js/rollup": "^3.1.1",
     "@shikijs/rehype": "^4.5.0",
     "@types/hast": "^3.0.5",
