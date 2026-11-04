@@ -221,6 +221,9 @@ importers:
       '@mark1russell7/cue':
         specifier: github:mark1russell7/cue
         version: https://codeload.github.com/mark1russell7/cue/tar.gz/f2bb6026e14fcfb782eef3e02771ce983d4bff55
+      '@mark1russell7/site-pages':
+        specifier: ^0.2.6
+        version: 0.2.6
       '@mdx-js/rollup':
         specifier: ^3.1.1
         version: 3.1.1(rollup@4.64.2)
@@ -477,6 +480,19 @@ packages:
     resolution: {gitHosted: true, integrity: sha512-Gwipz/SuOqJpOOEWbGPrj4dF2q515xjIC7bk+4YXdr0TVpEpZXux9jCYXWaR+0ihzkBsw7Y7CYQrkbr9FMyypA==, tarball: https://codeload.github.com/mark1russell7/cue/tar.gz/f2bb6026e14fcfb782eef3e02771ce983d4bff55}
     version: 1.0.0
     engines: {node: '>=25.0.0', npm: '>=11.0.0'}
+    hasBin: true
+
+  '@mark1russell7/rigor-generators@0.1.5':
+    resolution: {integrity: sha512-YkABrG6+AV4oZKWoSIayDGxKTqcTMbp/eGa+3u00X09Jv9TfpHFDeqHlEQARMBzJ/kvy/EMNIXQZMGa3Nobuzw==}
+    engines: {node: '>=22'}
+
+  '@mark1russell7/rigor-statistics@0.1.10':
+    resolution: {integrity: sha512-u0uA18ulOXO3f6bJXCulK3J3dTp+7+ruTtAhnrKLfhQmj/czSv5aM27BNA0q1vpVK7uFY2KDIarJhYBTSqVXIQ==}
+    engines: {node: '>=22'}
+
+  '@mark1russell7/site-pages@0.2.6':
+    resolution: {integrity: sha512-QruCtpT7/HZOG/Snb0BfZyNowLDGCLUkFu1yk3vPggl0NV4mgKoO7JaxSq/8PCgH8lVaIpLRkEQ4egfAlOflDQ==}
+    engines: {node: '>=22'}
     hasBin: true
 
   '@mark1russell7/ste-lint@https://codeload.github.com/mark1russell7/ste-lint/tar.gz/f597d6c1e09bcfcb487bb575825d6d5f29e9e0c7':
@@ -1975,6 +1991,16 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.6.0
 
   '@mark1russell7/cue@https://codeload.github.com/mark1russell7/cue/tar.gz/f2bb6026e14fcfb782eef3e02771ce983d4bff55': {}
+
+  '@mark1russell7/rigor-generators@0.1.5': {}
+
+  '@mark1russell7/rigor-statistics@0.1.10':
+    dependencies:
+      '@mark1russell7/rigor-generators': 0.1.5
+
+  '@mark1russell7/site-pages@0.2.6':
+    dependencies:
+      '@mark1russell7/rigor-statistics': 0.1.10
 
   '@mark1russell7/ste-lint@https://codeload.github.com/mark1russell7/ste-lint/tar.gz/f597d6c1e09bcfcb487bb575825d6d5f29e9e0c7':
     dependencies:

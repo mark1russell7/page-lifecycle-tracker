@@ -1,5 +1,6 @@
 import "@fontsource-variable/atkinson-hyperlegible-next/index.css";
 import "@fontsource-variable/atkinson-hyperlegible-mono/index.css";
+import "@mark1russell7/site-pages/scroll-cue.css";
 import "./styles/global.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
