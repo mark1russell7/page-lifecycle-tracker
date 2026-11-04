@@ -52,7 +52,7 @@ check("a page that ended takes no event", await until(() => $$(`${CONTROLS} butt
 check("a page that ended says so", $('[role="status"]')?.textContent?.includes("terminated"), $('[role="status"]')?.textContent);
 
 // The reset gives a new page.
-click($$("button").find((b) => b.textContent?.trim() === "Reset") as Element);
+click($$("button").find((b) => b.textContent?.trim() === "Reset the simulator") as Element);
 check("the reset gives a new page", await until(() => state() === "active" && logged() === 0), state());
 
 export {};
