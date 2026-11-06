@@ -222,8 +222,8 @@ importers:
         specifier: github:mark1russell7/cue
         version: https://codeload.github.com/mark1russell7/cue/tar.gz/f2bb6026e14fcfb782eef3e02771ce983d4bff55
       '@mark1russell7/site-pages':
-        specifier: ^0.2.6
-        version: 0.2.6
+        specifier: ^0.3.4
+        version: 0.3.4
       '@mdx-js/rollup':
         specifier: ^3.1.1
         version: 3.1.1(rollup@4.64.2)
@@ -490,8 +490,8 @@ packages:
     resolution: {integrity: sha512-u0uA18ulOXO3f6bJXCulK3J3dTp+7+ruTtAhnrKLfhQmj/czSv5aM27BNA0q1vpVK7uFY2KDIarJhYBTSqVXIQ==}
     engines: {node: '>=22'}
 
-  '@mark1russell7/site-pages@0.2.6':
-    resolution: {integrity: sha512-QruCtpT7/HZOG/Snb0BfZyNowLDGCLUkFu1yk3vPggl0NV4mgKoO7JaxSq/8PCgH8lVaIpLRkEQ4egfAlOflDQ==}
+  '@mark1russell7/site-pages@0.3.4':
+    resolution: {integrity: sha512-xxYaeElE6/HvADgO+2yu00c7svWw0ICQ99iD/2rYQVTLEvRqn40MDzi0gnCk37/LakH443xwYVvRw/YeZhj4PQ==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -1998,7 +1998,7 @@ snapshots:
     dependencies:
       '@mark1russell7/rigor-generators': 0.1.5
 
-  '@mark1russell7/site-pages@0.2.6':
+  '@mark1russell7/site-pages@0.3.4':
     dependencies:
       '@mark1russell7/rigor-statistics': 0.1.10
 
