@@ -174,7 +174,7 @@ importers:
         version: https://codeload.github.com/mark1russell7/ste-lint/tar.gz/f597d6c1e09bcfcb487bb575825d6d5f29e9e0c7
       '@mark1russell7/template-cli':
         specifier: ^0.1.2
-        version: 0.1.5
+        version: 0.1.7
       tsx:
         specifier: ^4.23.15
         version: 4.23.15
@@ -222,8 +222,8 @@ importers:
         specifier: github:mark1russell7/cue
         version: https://codeload.github.com/mark1russell7/cue/tar.gz/f2bb6026e14fcfb782eef3e02771ce983d4bff55
       '@mark1russell7/site-pages':
-        specifier: ^0.3.4
-        version: 0.3.4
+        specifier: ^0.4.3
+        version: 0.4.3
       '@mdx-js/rollup':
         specifier: ^3.1.1
         version: 3.1.1(rollup@4.64.2)
@@ -490,8 +490,8 @@ packages:
     resolution: {integrity: sha512-u0uA18ulOXO3f6bJXCulK3J3dTp+7+ruTtAhnrKLfhQmj/czSv5aM27BNA0q1vpVK7uFY2KDIarJhYBTSqVXIQ==}
     engines: {node: '>=22'}
 
-  '@mark1russell7/site-pages@0.3.4':
-    resolution: {integrity: sha512-xxYaeElE6/HvADgO+2yu00c7svWw0ICQ99iD/2rYQVTLEvRqn40MDzi0gnCk37/LakH443xwYVvRw/YeZhj4PQ==}
+  '@mark1russell7/site-pages@0.4.3':
+    resolution: {integrity: sha512-6RVlKnaXyVAwcZwrKugTcm32strh0D5Dz+ZSSz6zlLXtWtX31C23ue88bPh7PujLw6r90PywY00uSkNafOCKfg==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -501,8 +501,8 @@ packages:
     engines: {node: '>=22'}
     hasBin: true
 
-  '@mark1russell7/template-cli@0.1.5':
-    resolution: {integrity: sha512-OenwEgVEkrt6HjUtIsTgplkJJTBIZLwb0mxiPow533++mbrrJ8BvHK+MsMLFm6X5A8EJZlLgd6IXJspZy3L2og==}
+  '@mark1russell7/template-cli@0.1.7':
+    resolution: {integrity: sha512-Wy4xa6OgNXyMunSyXOArxmrspLSCuyw1pf1P5X45Uiwe1aWHzn0LJptUYVGUSwT3GTp9FGVDhFMeOnKlapD3Xw==}
     engines: {node: '>=22.12'}
     hasBin: true
 
@@ -1998,7 +1998,7 @@ snapshots:
     dependencies:
       '@mark1russell7/rigor-generators': 0.1.5
 
-  '@mark1russell7/site-pages@0.3.4':
+  '@mark1russell7/site-pages@0.4.3':
     dependencies:
       '@mark1russell7/rigor-statistics': 0.1.10
 
@@ -2006,7 +2006,7 @@ snapshots:
     dependencies:
       typescript: 6.0.3
 
-  '@mark1russell7/template-cli@0.1.5':
+  '@mark1russell7/template-cli@0.1.7':
     dependencies:
       '@clack/prompts': 1.8.1
 
