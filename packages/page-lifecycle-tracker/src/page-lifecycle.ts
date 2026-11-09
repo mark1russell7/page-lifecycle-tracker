@@ -72,12 +72,16 @@ export class PageLifecycle {
   /** The event objects that the tracker handled, so that `handle()` and a listener handle each one time. */
   private readonly handled = new WeakSet<object>();
 
-  constructor(
-    private readonly document: LifecycleDocument,
-    private readonly window: LifecycleWindow,
-    private readonly clock: Clock,
-    private readonly logger: Logger,
-  ) {
+  private readonly document: LifecycleDocument;
+  private readonly window: LifecycleWindow;
+  private readonly clock: Clock;
+  private readonly logger: Logger;
+
+  constructor(document: LifecycleDocument, window: LifecycleWindow, clock: Clock, logger: Logger) {
+    this.document = document;
+    this.window = window;
+    this.clock = clock;
+    this.logger = logger;
     this.currentState = this.document.visibilityState === "hidden" ? "hidden" : this.visibleState();
     this.attachListeners();
   }
