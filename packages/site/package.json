@@ -28,7 +28,7 @@
     "@vitest/browser-playwright": "^5.0.5",
     "@vitest/coverage-v8": "^5.0.5",
     "github-slugger": "^2.0.0",
-    "playwright": "~1.64.0",
+    "playwright": "~1.65.0",
     "rehype-autolink-headings": "^7.1.0",
     "rehype-slug": "^6.0.0",
     "remark-frontmatter": "^5.0.0",
