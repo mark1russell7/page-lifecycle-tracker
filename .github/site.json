@@ -1,0 +1,15 @@
+{
+  "$comment": "The site config of this repository (CI.md of the template, \"The site config\"). The Pages workflow deploys this site from main, and a job of ci.yml checks it on each pull request.",
+  "build": "pnpm --filter ./packages/site exec playwright install --with-deps chromium\npnpm --filter ./packages/site build\n",
+  "out": "packages/site/dist",
+  "env": {
+    "SITE_BASE": "{repo}",
+    "SITE_URL": "https://{owner}.github.io/{repo}/"
+  },
+  "site-pages": true,
+  "packages": "page-lifecycle-tracker",
+  "site-name": "page-lifecycle-tracker",
+  "site-check": true,
+  "site-check-pages": "/docs/concepts/states-and-transitions/,/,/releases/,/status/",
+  "site-check-probe": "packages/site/src/check-probe.ts"
+}
