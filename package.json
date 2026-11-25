@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@mark1russell7/cue": "^2.1.2",
-    "@mark1russell7/ste-lint": "^0.5.0",
+    "@mark1russell7/ste-lint": "^0.6.0",
     "@mark1russell7/template-cli": "^0.1.2",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
