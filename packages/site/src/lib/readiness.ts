@@ -6,7 +6,7 @@
  * element in the page has this attribute.
  *
  * - The build waits for a ready page before it saves the HTML of the page.
- *   Refer to `build/prerender.ts`.
+ *   Refer to `tooling/prerender.ts`.
  * - In a page with saved HTML, the app renders into a hidden element. It
  *   shows that element when the page is ready. Refer to `app/prerender-handoff.ts`.
  *

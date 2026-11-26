@@ -1,11 +1,11 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
-import { normalizeBase } from "./build/base.ts";
-import { fontPreloadPlugin } from "./build/font-preload-plugin.ts";
-import { mdxFrontmatterPlugin } from "./build/frontmatter-plugin.ts";
-import { mdxPlugin } from "./build/mdx-plugin.ts";
-import { searchPlugin } from "./build/search-plugin.ts";
-import { staticSitePlugin } from "./build/static-site-plugin.ts";
+import { normalizeBase } from "./tooling/base.ts";
+import { fontPreloadPlugin } from "./tooling/font-preload-plugin.ts";
+import { mdxFrontmatterPlugin } from "./tooling/frontmatter-plugin.ts";
+import { mdxPlugin } from "./tooling/mdx-plugin.ts";
+import { searchPlugin } from "./tooling/search-plugin.ts";
+import { staticSitePlugin } from "./tooling/static-site-plugin.ts";
 
 /**
  * The Vite configuration of the site. Set `SITE_BASE` to deploy below a path,

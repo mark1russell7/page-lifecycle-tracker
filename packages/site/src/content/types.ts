@@ -21,7 +21,7 @@ export type PageMeta = {
   layout?: "wide";
 };
 
-/** One heading in the table of contents. `build/rehype-export-toc.ts` exports this shape as `toc`. */
+/** One heading in the table of contents. `tooling/rehype-export-toc.ts` exports this shape as `toc`. */
 export type TocEntry = {
   id: string;
   depth: 2 | 3;
