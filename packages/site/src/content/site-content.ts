@@ -2,7 +2,7 @@ import { CONTENT_SOURCE_ROOT } from "../app/site.ts";
 import { createContentRegistry } from "./registry.ts";
 import type { ContentEntry, ContentModule, ContentRegistry } from "./types.ts";
 
-// The frontmatter loads eagerly through `?frontmatter` (refer to build/frontmatter-plugin.ts).
+// The frontmatter loads eagerly through `?frontmatter` (refer to tooling/frontmatter-plugin.ts).
 // Each page component loads lazily, in its own chunk.
 const frontmatters = import.meta.glob<unknown>("../../content/**/*.mdx", {
   eager: true,

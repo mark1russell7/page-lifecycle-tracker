@@ -1,5 +1,5 @@
 /**
- * The types of the `.mdx` modules (refer to `build/mdx-plugin.ts`). The
+ * The types of the `.mdx` modules (refer to `tooling/mdx-plugin.ts`). The
  * content registry loads the pages with `import.meta.glob`. A direct
  * `import Example from "./example.mdx"` uses this declaration.
  */
@@ -14,7 +14,7 @@ declare module "*.mdx" {
   export default MDXContent;
 }
 
-/** The type of `virtual:search-index` (refer to `build/search-plugin.ts`). */
+/** The type of `virtual:search-index` (refer to `tooling/search-plugin.ts`). */
 declare module "virtual:search-index" {
   export type SearchHeading = { text: string; id: string };
   export type SearchEntry = {

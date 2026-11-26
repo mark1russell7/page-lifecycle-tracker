@@ -1,9 +1,9 @@
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig, mergeConfig } from "vitest/config";
 import viteConfig from "./vite.config.ts";
-import { BROWSER_HOST, freePorts } from "./build/free-port.ts";
+import { BROWSER_HOST, freePorts } from "./tooling/free-port.ts";
 
-// The browser server gets a free port, not the default port of Vitest (refer to build/free-port.ts)
+// The browser server gets a free port, not the default port of Vitest (refer to tooling/free-port.ts)
 const browserPort = await freePorts()();
 
 /**
@@ -21,7 +21,7 @@ export default mergeConfig(
           test: {
             name: "site (node)",
             environment: "node",
-            include: ["build/**/*.test.ts", "src/**/*.test.{ts,tsx}"],
+            include: ["tooling/**/*.test.ts", "src/**/*.test.{ts,tsx}"],
             exclude: ["**/node_modules/**", "**/*.browser.test.{ts,tsx}"],
           },
         },

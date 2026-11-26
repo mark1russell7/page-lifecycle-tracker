@@ -7,6 +7,6 @@
     "noEmit": true,
     "rootDir": "${configDir}"
   },
-  "include": ["vite.config.ts", "vitest.config.ts", "build/**/*"],
+  "include": ["vite.config.ts", "vitest.config.ts", "tooling/**/*"],
   "exclude": ["node_modules", "dist"]
 }
