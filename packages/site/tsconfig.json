@@ -9,6 +9,7 @@
     "isolatedDeclarations": false,
     "declaration": false,
     "declarationMap": false,
+    "noPropertyAccessFromIndexSignature": false,
     "types": [
       "vite/client"
     ]

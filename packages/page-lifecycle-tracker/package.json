@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package",
   "name": "page-lifecycle-tracker",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "The Page Lifecycle state of a web page (active, passive, hidden, frozen, terminated) for monitoring and telemetry libraries: one shared tracker for the page, observers before exporters, back/forward cache restores, and marks.",
   "keywords": [
     "page-lifecycle",

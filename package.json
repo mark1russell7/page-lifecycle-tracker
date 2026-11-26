@@ -40,6 +40,12 @@
           ".github/workflows/ci.yml"
         ],
         "reason": "The shared CI (reusable-ci.yml) has no input for the action setup-playwright, so its setup line installs Chromium for the browser tests of the site. It ends when the shared CI gets that input."
+      },
+      "cue-preset": {
+        "ignore": [
+          "packages/site/tsconfig.json"
+        ],
+        "reason": "The site reads its CSS module classes with dot access (styles.page), 227 reads. vite/client types each CSS module with an index signature, so noPropertyAccessFromIndexSignature would need bracket access, which checks no more. It ends when the CSS modules have typed keys (roadmap item C5)."
       }
     }
   }
